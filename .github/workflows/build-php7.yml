@@ -1,0 +1,106 @@
+name: Build and Publish PHP7
+
+on:
+  push:
+    branches:
+      - '**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout proto repository
+        run: |
+          git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, grpc, protobuf
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.composer/cache
+            ./vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/php7/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --prefer-dist --no-progress
+
+      - name: Install Specific Protoc Version
+        run: |
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
+          unzip protoc-27.1-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/* /usr/local/bin/
+          sudo mv protoc/include/* /usr/local/include/
+
+      - name: Check Protoc Version
+        run: |
+          protoc --version
+
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v3
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1.64.2
+
+      - name: Build gRPC PHP plugin
+        if: steps.cache-grpc-php-plugin.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y build-essential autoconf libtool pkg-config
+          git clone --recurse-submodules -b v1.64.2  https://github.com/grpc/grpc
+          cd grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../..
+          make grpc_php_plugin
+
+      - name: Install gRPC PHP plugin
+        run: |
+          sudo cp ./grpc/cmake/build/grpc_php_plugin /usr/local/bin/
+
+      - name: Compile Protobuf file
+        run: |
+          mkdir -p output
+          protoc --proto_path=src/main/proto --php_out=./output --grpc_out=./output --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+
+      - name: Package the compiled files
+        run: |
+          mkdir -p package
+          cp -r output/ package/
+          cd package
+          zip -r kody-php7-grpc-package.zip .
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: package/kody-php7-grpc-package.zip
+          asset_name: kody-php7-grpc-package.zip
+          asset_content_type: application/zip
+

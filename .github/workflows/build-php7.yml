@@ -82,7 +82,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_ref.outputs.name }}
           release_name: Release ${{ github.ref }}
@@ -94,7 +94,7 @@ jobs:
         if: steps.get_ref.outputs.type == 'branch'
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: test-${{ steps.get_ref.outputs.name }}-${{ github.sha }}
           release_name: "Test Release ${{ steps.get_ref.outputs.name }}-${{ github.sha }}"
@@ -105,7 +105,7 @@ jobs:
         if: steps.get_ref.outputs.type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: package/kody-php7-grpc-package.zip
@@ -115,7 +115,7 @@ jobs:
         if: steps.get_ref.outputs.type == 'branch'
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_test_release.outputs.upload_url }}
           asset_path: package/kody-php7-grpc-package.zip

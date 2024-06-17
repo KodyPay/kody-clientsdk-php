@@ -40,7 +40,7 @@ jobs:
         with:
           path: |
             ./grpc/cmake/build
-          key: ${{ runner.os }}-grpc-php-plugin-v1.64.2
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
 
       - name: Build gRPC PHP plugin
         if: steps.cache-grpc-php-plugin.outputs.cache-hit != 'true'

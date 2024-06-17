@@ -64,35 +64,43 @@ jobs:
         run: |
           zip -r kody-php7-grpc-package.zip php7
 
-      - name: Create GitHub Release Candidate
-        if: |
-          startsWith(github.ref, 'refs/tags/v') &&
-          contains(github.ref, '-rc.')
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+      - name: Get ref type and name
+        id: get_ref
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          echo "::set-output name=type::tag"
+          echo "::set-output name=name::${GITHUB_REF#refs/tags/}"
+          else
+          echo "::set-output name=type::branch"
+          echo "::set-output name=name::${GITHUB_REF#refs/heads/}"
+          fi
 
       - name: Create GitHub Release
-        if: |
-          startsWith(github.ref, 'refs/tags/v') &&
-          !contains(github.ref, '-rc.')
+        if: steps.get_ref.outputs.type == 'tag'
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ steps.get_ref.outputs.name }}
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
 
+      - name: Create Test GitHub Release
+        id: create_test_release
+        if: steps.get_ref.outputs.type == 'branch'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+        with:
+          tag_name: test-${{ steps.get_ref.outputs.name }}-${{ github.sha }}
+          release_name: "Test Release ${{ steps.get_ref.outputs.name }}-${{ github.sha }}"
+          draft: false
+          prerelease: true
+
       - name: Upload Release Asset
+        if: steps.get_ref.outputs.type == 'tag'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
@@ -101,3 +109,14 @@ jobs:
           asset_path: package/kody-php7-grpc-package.zip
           asset_name: kody-php7-grpc-package.zip
           asset_content_type: application/zip
+      - name: Upload Release Asset
+        if: steps.get_ref.outputs.type == 'branch'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+        with:
+          upload_url: ${{ steps.create_test_release.outputs.upload_url }}
+          asset_path: package/kody-php7-grpc-package.zip
+          asset_name: kody-php7-grpc-package.zip
+          asset_content_type: application/zip
+

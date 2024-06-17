@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Cache gRPC PHP plugin
         uses: actions/cache@v3
-        id: cache-grpc-php-plugin-v1.64.2
+        id: cache-grpc-php-plugin
         with:
           path: |
             ./grpc/cmake/build

@@ -14,8 +14,6 @@ jobs:
       - name: Checkout proto repository
         run: |
           git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -73,26 +71,23 @@ jobs:
 
       - name: Compile Protobuf file
         run: |
-          mkdir -p output
-          protoc --proto_path=proto-repo/src/main/proto --php_out=./output --grpc_out=./output --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+          mkdir -p php7
+          protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
 
       - name: Package the compiled files
         run: |
-          mkdir -p package
-          cp -r output/ package/
-          cd package
-          zip -r kody-php7-grpc-package.zip .
+          zip -r kody-php7-grpc-package.zip php7
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+#      - name: Create GitHub Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -100,7 +95,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: package/kody-php7-grpc-package.zip
+          asset_path: kody-php7-grpc-package.zip
           asset_name: kody-php7-grpc-package.zip
           asset_content_type: application/zip
-

@@ -1,0 +1,62 @@
+name: PHP7 Build
+
+on:
+  workflow_run:
+    workflows: ["PHP7 Prepare"]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout proto repository
+        run: |
+          git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, grpc, protobuf
+
+      - name: Install Specific Protoc Version
+        run: |
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
+          unzip protoc-27.1-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/* /usr/local/bin/
+          sudo mv protoc/include/* /usr/local/include/
+
+      - name: Check Protoc Version
+        run: |
+          protoc --version
+
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Install gRPC PHP plugin
+        run: |
+          sudo cp ./grpc/cmake/build/grpc_php_plugin /usr/local/bin/
+
+      - name: Compile Protobuf file
+        run: |
+          mkdir -p php7
+          protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+
+      - name: Package the compiled files
+        run: |
+          zip -r kody-php7-grpc-package.zip php7
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: kody-php7-grpc-package
+          path: php7/kody-php7-grpc-package.zip

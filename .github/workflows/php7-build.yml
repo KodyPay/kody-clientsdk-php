@@ -59,4 +59,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: kody-php7-grpc-package
-          path: php7/kody-php7-grpc-package.zip
+          path: kody-php7-grpc-package.zip

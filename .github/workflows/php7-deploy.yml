@@ -1,5 +1,4 @@
-name: Build and Publish PHP7
-
+name: PHP7 Publish
 on:
   workflow_run:
     workflows: ["PHP7 Build"]
@@ -20,7 +19,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v3
         with:
-          name: php7-grpc-package
+          name: kody-php7-grpc-package
 
       - name: Determine Tag
         id: tag_info

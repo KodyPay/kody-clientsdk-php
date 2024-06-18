@@ -1,0 +1,70 @@
+name: Build and Publish PHP7
+
+on:
+  workflow_run:
+    workflows: ["PHP7 Build"]
+    types:
+      - completed
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: php7-grpc-package
+
+      - name: Determine Tag
+        id: tag_info
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [ "$BRANCH" == "main" ]; then
+            DATE=$(date +'%Y%m%d')
+            TAG_PREFIX="${DATE}"
+          
+            # Find the latest tag for the current date
+            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -r | head -n 1)
+            if [ -z "$LATEST_TAG" ]; then
+              NEW_TAG="${TAG_PREFIX}.1"
+            else
+              INCREMENT=$(echo "$LATEST_TAG" | sed 's/.*\.\([0-9]\+\)/\1/')
+              NEW_TAG="${TAG_PREFIX}.$((INCREMENT+1))"
+            fi
+          else
+            NEW_TAG="${BRANCH}-dev"
+          fi
+          echo "::set-output name=tag::$NEW_TAG"
+
+      - name: Create Tag
+        run: |
+          git tag ${{ steps.tag_info.outputs.tag }}
+          git push origin ${{ steps.tag_info.outputs.tag }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag_info.outputs.tag }}
+          release_name: Release ${{ steps.tag_info.outputs.tag }}
+          draft: false
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: php7-package/kody-php7-grpc-package.zip
+          asset_name: kody-php7-grpc-package.zip
+          asset_content_type: application/zip

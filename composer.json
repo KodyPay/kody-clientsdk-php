@@ -7,16 +7,14 @@
     },
     "autoload": {
         "psr-4": {
-            "KodyBamboo\\Grpc\\Pay\\V1\\": "output/"
+            "Kody\\PHP7\\Grpc\\Pay\\V1\\": "php7/"
         }
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "repositories": [
         {
-            "type": "composer",
-            "url": "https://repo.packagist.org"
-        },
-        {
-            "type": "composer",
+            "type": "artifact",
             "url": "https://github.com/KodyPay/kody-clientsdk-php7/packages"
         }
     ]

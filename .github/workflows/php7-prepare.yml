@@ -1,0 +1,28 @@
+name: PHP7 Prepare
+
+on:
+  push:
+    branches:
+      - '**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Build gRPC PHP plugin
+        if: steps.cache-grpc-php-plugin.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y build-essential autoconf libtool pkg-config
+          git clone --recurse-submodules -b v1.64.2  https://github.com/grpc/grpc
+          cd grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../..
+          make grpc_php_plugin

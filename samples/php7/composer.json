@@ -1,0 +1,22 @@
+{
+    "name": "kody/kody-php7-grpc-sample",
+    "description": "A PHP7 sample how to use Kody SDK PHP7 client to communicated with Kody terminals",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "kody/kody-php7-grpc-client": "dev-main"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/KodyPay/kody-clientsdk-php7"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Sample\\": "src/"
+        }
+    }
+}

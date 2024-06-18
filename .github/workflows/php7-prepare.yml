@@ -5,7 +5,7 @@ on:
     branches:
       - '**'
 jobs:
-  build:
+  prepare-grpc-plugin:
     runs-on: ubuntu-latest
     steps:
       - name: Cache gRPC PHP plugin

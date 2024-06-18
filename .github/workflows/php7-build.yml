@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kody-php7-grpc-package
-          path: kody-php7-grpc-package.zip
+          path: packages/kody-php7-grpc-package.zip
 
   tagging-and-publishing:
     runs-on: ubuntu-latest
@@ -74,6 +74,9 @@ jobs:
 
       - name: Download Artifact
         uses: actions/download-artifact@v4
+        with:
+          name: kody-php7-grpc-package
+          path: packages/
 
       - name: Determine Tag
         id: tag_info

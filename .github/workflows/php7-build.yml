@@ -110,7 +110,7 @@ jobs:
             TAG_PREFIX="${DATE}"
           
             # Find the latest tag for the current date
-            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -r | head -n 1)
+            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
             if [ -z "$LATEST_TAG" ]; then
               NEW_TAG="${TAG_PREFIX}.1"
             else
@@ -125,8 +125,8 @@ jobs:
 
       - name: Create Tag
         run: |
-          git tag ${{ steps.tag_info.outputs.tag }}
-          git push origin ${{ steps.tag_info.outputs.tag }}
+          git tag ${{ env.tag }}
+          git push origin ${{ env.tag }}
 
       - name: Create GitHub Release
         id: create_release
@@ -134,8 +134,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag_info.outputs.tag }}
-          release_name: Release ${{ steps.tag_info.outputs.tag }}
+          tag_name: ${{ env.tag }}
+          release_name: Release ${{ env.tag }}
           draft: false
           prerelease: ${{ github.ref != 'refs/heads/main' }}
 

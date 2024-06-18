@@ -120,7 +120,8 @@ jobs:
           else
             NEW_TAG="${BRANCH}-dev"
           fi
-          echo "::set-output name=tag::$NEW_TAG"
+          echo "Determined new tag: $NEW_TAG"
+          echo "tag=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Create Tag
         run: |

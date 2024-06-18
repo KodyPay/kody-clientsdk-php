@@ -114,7 +114,7 @@ jobs:
             if [ -z "$LATEST_TAG" ]; then
               NEW_TAG="${TAG_PREFIX}.1"
             else
-              INCREMENT=$(echo "$LATEST_TAG" | sed 's/.*\.\([0-9]\+\)/\1/')
+              INCREMENT=$(echo "$LATEST_TAG" | grep -oE '[0-9]+$')
               NEW_TAG="${TAG_PREFIX}.$((INCREMENT+1))"
             fi
           else

@@ -46,12 +46,6 @@ jobs:
           php-version: '7.4'
           extensions: mbstring, json, grpc, protobuf
 
-      - name: Install gRPC PHP Extension
-        run: sudo pecl install grpc
-
-      - name: Require gRPC PHP Extension in Composer
-        run: composer require ext-grpc --no-update
-
       - name: Install Specific Protoc Version
         run: |
           wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
@@ -79,6 +73,9 @@ jobs:
         run: |
           mkdir -p php7
           protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+
+      - name: Require gRPC PHP Extension in Composer
+        run: composer require ext-grpc --no-update
 
       - name: Package the compiled files
         run: |

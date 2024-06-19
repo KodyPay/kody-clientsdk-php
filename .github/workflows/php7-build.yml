@@ -103,14 +103,6 @@ jobs:
             TAG="$DATE_TAG-dev"
           fi
           echo "tag=\"$TAG\"" >> "$GITHUB_OUTPUT"
-  tagging-echo:
-    needs:
-      - tagging
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show tag
-        run: |
-          echo "Tag: ${{ needs.tagging.outputs.tag }}"
 
   release:
     needs:
@@ -127,10 +119,7 @@ jobs:
           name: kody-php7-grpc-package
 
       - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1.14.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1.14.0
         with:
           commit: ${{ needs.tagging.outputs.tag }}
           tag: ${{ needs.tagging.outputs.tag }}

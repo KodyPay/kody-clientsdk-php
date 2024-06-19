@@ -31,7 +31,7 @@ jobs:
 
   build-package:
     needs:
-    - prepare-grpc-plugin
+      - prepare-grpc-plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -97,16 +97,24 @@ jobs:
         run: |
           TAG=$(date +'%Y%m%d_%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo 'tags=[$TAG,"latest"]' >> "$GITHUB_OUTPUT"          
+            echo 'tags=[$TAG,"latest"]' >> "$GITHUB_OUTPUT"
           else
             TAG=$(date +'%Y%m%d_%H%M')-dev
             echo 'tags=[$TAG]' >> "$GITHUB_OUTPUT"          
           fi
+  tagging-echo:
+    needs:
+      - tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show tag
+        run: |
+          echo "Tags: ${{ fromJSON(needs.tagging.outputs.tags) }}"
 
   release:
     needs:
-    - build-package
-    - tagging
+      - build-package
+      - tagging
     runs-on: ubuntu-latest
     strategy:
       matrix:

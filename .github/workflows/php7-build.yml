@@ -91,9 +91,9 @@ jobs:
   tagging:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.tags.outputs.tag }}
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Create and push tag
+      - name: Create tag
         id: tag
         run: |
           DATE_TAG=$(date +'%Y%m%d_%H%M')
@@ -117,9 +117,6 @@ jobs:
       - build-package
       - tagging
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tag: ${{ needs.tagging.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -135,8 +132,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          commit: ${{ matrix.tag }}
-          tag: ${{ matrix.tag }}
+          commit: ${{ needs.tagging.outputs.tag }}
+          tag: ${{ needs.tagging.outputs.tag }}
           body: |
             Changes in this release:
             ${{ github.event.release.body }}

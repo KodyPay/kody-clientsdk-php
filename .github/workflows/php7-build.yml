@@ -106,23 +106,9 @@ jobs:
         run: |
           BRANCH=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH" == "main" ]; then
-            DATE=$(date +'%Y%m%d')
-            TAG_PREFIX="${DATE}"
-            echo "Tag prefix: $TAG_PREFIX"
-          
-            git tag -l "${TAG_PREFIX}*"
-          
-            # Find the latest tag for the current date
-            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
-            echo "Latest tag: $LATEST_TAG"
-            if [ -z "$LATEST_TAG" ]; then
-              NEW_TAG="${TAG_PREFIX}.1"
-            else
-              INCREMENT=$(echo "$LATEST_TAG" | grep -oE '[0-9]+$')
-              NEW_TAG="${TAG_PREFIX}.$((INCREMENT+1))"
-            fi
+            NEW_TAG="${BRANCH}"
           else
-            NEW_TAG="${BRANCH}-dev"
+            NEW_TAG="dev-${BRANCH}"
           fi
           echo "New tag: $NEW_TAG"
           echo "tag=$NEW_TAG" >> $GITHUB_ENV

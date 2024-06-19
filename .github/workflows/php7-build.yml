@@ -135,8 +135,8 @@ jobs:
 
       - name: Push tag
         run: |
-          git tag ${{ matrix.tag }}
-          git push origin ${{ matrix.tag }}
+          git tag -f ${{ matrix.tag }}
+          git push -f origin ${{ matrix.tag }}
 
       - name: Create GitHub Release
         id: create_release

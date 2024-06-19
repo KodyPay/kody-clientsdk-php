@@ -91,7 +91,7 @@ jobs:
   tagging:
     runs-on: ubuntu-latest
     outputs:
-      tags: $
+      tags: ${{ steps.tags.outputs.tags }}
     steps:
       - name: Create and push tag
         id: tags
@@ -103,7 +103,7 @@ jobs:
             TAGS="tags=[\"$DATE_TAG-dev\"]"
           fi
           echo "Tags: $TAGS"
-          echo "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "$TAGS" >> $GITHUB_ENV
   tagging-echo:
     needs:
       - tagging

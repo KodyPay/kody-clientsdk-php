@@ -108,9 +108,11 @@ jobs:
           if [ "$BRANCH" == "main" ]; then
             DATE=$(date +'%Y%m%d')
             TAG_PREFIX="${DATE}"
+            echo "Tag prefix: $TAG_PREFIX"
           
             # Find the latest tag for the current date
             LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
+            echo "Latest tag: $LATEST_TAG"
             if [ -z "$LATEST_TAG" ]; then
               NEW_TAG="${TAG_PREFIX}.1"
             else
@@ -120,7 +122,7 @@ jobs:
           else
             NEW_TAG="${BRANCH}-dev"
           fi
-          echo "Determined new tag: $NEW_TAG"
+          echo "New tag: $NEW_TAG"
           echo "tag=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Create Tag

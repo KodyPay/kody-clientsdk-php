@@ -51,7 +51,7 @@ jobs:
 
       - name: Require gRPC PHP Extension in Composer
         run: composer require ext-grpc --no-update
-                    
+
       - name: Install Specific Protoc Version
         run: |
           wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
@@ -107,27 +107,25 @@ jobs:
         with:
           name: kody-php7-grpc-package
 
-      - name: Determine Tag
+      - name: Setting Tag
         id: tag_info
         run: |
           BRANCH=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH" == "main" ]; then
             DATE=$(date +'%Y%m%d_%H%M')
+            git tag "latest"
+            git push origin "latest"
             NEW_TAG="${DATE}"
           else
             NEW_TAG="${BRANCH}-dev"
           fi
           echo "New tag: $NEW_TAG"
-          echo "tag=$NEW_TAG" >> $GITHUB_ENV
-
-      - name: Create Tag
-        run: |
-          git tag ${{ env.tag }}
-          git push origin ${{ env.tag }}
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -137,7 +135,7 @@ jobs:
           prerelease: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

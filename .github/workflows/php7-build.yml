@@ -111,7 +111,7 @@ jobs:
     steps:
       - name: Show tag
         run: |
-          echo "Tags: ${{ fromJSON(needs.tagging.outputs.tags) }}"
+          echo "Tags: ${{ needs.tagging.outputs.tags }}"
 
   release:
     needs:

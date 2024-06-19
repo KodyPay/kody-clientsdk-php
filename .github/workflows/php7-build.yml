@@ -96,10 +96,11 @@ jobs:
       - name: Create and push tag
         id: tags
         run: |
+          DATE_TAG=$(date +'%Y%m%d_%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            TAGS='tags=[$(date +'%Y%m%d_%H%M'),"latest"]'
+            TAGS="tags=[\"$DATE_TAG\",\"latest\"]"
           else
-            TAGS='tags=[$(date +'%Y%m%d_%H%M')-dev]'          
+            TAGS="tags=[\"$DATE_TAG-dev\"]"
           fi
           echo "Tags: $TAGS"
           echo "$TAGS" >> "$GITHUB_OUTPUT"

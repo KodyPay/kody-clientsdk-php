@@ -102,8 +102,8 @@ jobs:
           else
             TAGS="tags=[\"$DATE_TAG-dev\"]"
           fi
-          echo "Tags: $TAGS"
-          echo "$TAGS" >> $GITHUB_ENV
+          echo "::debug::$TAGS"
+          echo "$TAGS" >> "$GITHUB_OUTPUT"
   tagging-echo:
     needs:
       - tagging

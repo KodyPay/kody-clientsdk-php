@@ -96,13 +96,13 @@ jobs:
       - name: Create tag
         id: tag
         run: |
-          DATE_TAG=$(date +'%Y%m%d_%H%M')
+          DATE_TAG=$(date +'%y%m%d_%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             TAG="$DATE_TAG"
           else
             TAG="$DATE_TAG-dev"
           fi
-          echo "tag=\"$TAG\"" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
   tagging-echo:
     needs:
@@ -130,7 +130,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: Release ${{ needs.tagging.outputs.tag }}
+          name: ${{ needs.tagging.outputs.tag }}
           tag: ${{ needs.tagging.outputs.tag }}
           body: |
             Changes in this release:

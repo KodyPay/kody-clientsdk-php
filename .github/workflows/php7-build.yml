@@ -1,13 +1,36 @@
-name: PHP7 Build
+name: PHP7 Build and Release
 
 on:
-  workflow_run:
-    workflows: ["PHP7 Prepare"]
-    types:
-      - completed
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
 
 jobs:
+  prepare-grpc-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Build gRPC PHP plugin
+        if: steps.cache-grpc-php-plugin.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y build-essential autoconf libtool pkg-config
+          git clone --recurse-submodules -b v1.64.2  https://github.com/grpc/grpc
+          cd grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../..
+          make grpc_php_plugin  
+
   build-package:
+    needs: prepare-grpc-plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,3 +83,70 @@ jobs:
         with:
           name: kody-php7-grpc-package
           path: kody-php7-grpc-package.zip
+
+  tagging-and-publishing:
+    needs: build-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kody-php7-grpc-package
+
+      - name: Determine Tag
+        id: tag_info
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [ "$BRANCH" == "main" ]; then
+            DATE=$(date +'%Y%m%d')
+            TAG_PREFIX="${DATE}"
+            echo "Tag prefix: $TAG_PREFIX"
+          
+            # Find the latest tag for the current date
+            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
+            echo "Latest tag: $LATEST_TAG"
+            if [ -z "$LATEST_TAG" ]; then
+              NEW_TAG="${TAG_PREFIX}.1"
+            else
+              INCREMENT=$(echo "$LATEST_TAG" | grep -oE '[0-9]+$')
+              NEW_TAG="${TAG_PREFIX}.$((INCREMENT+1))"
+            fi
+          else
+            NEW_TAG="${BRANCH}-dev"
+          fi
+          echo "New tag: $NEW_TAG"
+          echo "tag=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Create Tag
+        run: |
+          git tag ${{ env.tag }}
+          git push origin ${{ env.tag }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.tag }}
+          release_name: Release ${{ env.tag }}
+          draft: false
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: kody-php7-grpc-package.zip
+          asset_name: kody-php7-grpc-package.zip
+          asset_content_type: application/zip

@@ -102,7 +102,7 @@ jobs:
           else
             TAG="$DATE_TAG-dev"
           fi
-          echo "$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=\"$TAG\"" >> "$GITHUB_OUTPUT"
   tagging-echo:
     needs:
       - tagging

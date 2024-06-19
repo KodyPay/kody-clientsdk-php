@@ -100,7 +100,7 @@ jobs:
             echo 'tags=[$TAG,"latest"]' >> $GITHUB_OUTPUT          
           else
             TAG=$(date +'%Y%m%d_%H%M')-dev
-            echo 'tags=[$TAG]' >> $GITHUB_OUTPUT          
+            echo 'tags=[$TAG]' >> "$GITHUB_OUTPUT"          
           fi
 
   release:
@@ -119,6 +119,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           echo "$tag" > tag
+          echo "Releasing TAG: $tag"
 
       - name: Push tag
         run: |
@@ -138,6 +139,11 @@ jobs:
             ${{ github.event.release.body }}
           draft: false
           prerelease: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Retrieve Artifact
+        uses: actions/download-artifact@latest
+        with:
+          name: kody-php7-grpc-package
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@latest

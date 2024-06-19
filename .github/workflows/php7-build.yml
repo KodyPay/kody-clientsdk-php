@@ -99,19 +99,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create and push tag
-        if: github.ref == 'refs/heads/main'
-        run: |
-          TAG_NAME=$(date +'%Y%m%d_%H%M')
-          git tag $TAG_NAME
-          git tag latest -f
-          git push origin $TAG_NAME
-          git push origin latest -f
-
       - name: Create and push dev tag
-        if: github.ref != 'refs/heads/main'
         run: |
-          TAG_NAME=dev-$(date +'%Y%m%d_%H%M')
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAG_NAME=$(date +'%Y%m%d_%H%M')
+          else
+            TAG_NAME=dev-$(date +'%Y%m%d_%H%M')
+          fi
           git tag $TAG_NAME
           git push origin $TAG_NAME
           echo "tag=$TAG_NAME" >> $GITHUB_ENV
@@ -129,6 +123,45 @@ jobs:
             ${{ github.event.release.body }}
           draft: false
           prerelease: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: kody-php7-grpc-package.zip
+          asset_name: kody-php7-grpc-package.zip
+          asset_content_type: application/zip
+
+  release-latest:
+    if: github.ref == 'refs/heads/main'
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          git tag latest -f
+          git push origin latest -f
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          release_name: latest
+          draft: false
+          prerelease: false
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@latest

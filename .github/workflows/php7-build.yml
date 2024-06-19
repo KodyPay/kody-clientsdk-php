@@ -30,7 +30,8 @@ jobs:
           make grpc_php_plugin  
 
   build-package:
-    needs: prepare-grpc-plugin
+    needs:
+      - prepare-grpc-plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -74,6 +75,9 @@ jobs:
           mkdir -p php7
           protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
 
+      - name: Require gRPC PHP Extension in Composer
+        run: composer require ext-grpc --no-update
+
       - name: Package the compiled files
         run: |
           zip -r kody-php7-grpc-package.zip php7
@@ -84,65 +88,77 @@ jobs:
           name: kody-php7-grpc-package
           path: kody-php7-grpc-package.zip
 
-  tagging-and-publishing:
-    needs: build-package
+  tagging:
     runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      - name: Create and push tag
+        id: tags
+        run: |
+          DATE_TAG=$(date +'%Y%m%d_%H%M')
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAGS="tags=[\"$DATE_TAG\",\"latest\"]"
+          else
+            TAGS="tags=[\"$DATE_TAG-dev\"]"
+          fi
+          echo "$TAGS" >> "$GITHUB_OUTPUT"
+  tagging-echo:
+    needs:
+      - tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show tag
+        run: |
+          echo "Tags: ${{ needs.tagging.outputs.tags }}"
+
+  release:
+    needs:
+      - build-package
+      - tagging
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tag: ${{ fromJSON(needs.tagging.outputs.tags) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Git
+      - name: Set up
+        env:
+          tag: $
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "$tag" > tag
+          echo "Releasing TAG: $tag"
 
-      - name: Download Artifact
+      - name: Push tag
+        run: |
+          git tag -f ${{ matrix.tag }}
+          git push -f origin ${{ matrix.tag }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ matrix.tag }}
+          release_name: Release ${{ matrix.tag }}
+          body: |
+            Changes in this release:
+            ${{ github.event.release.body }}
+          draft: false
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Retrieve Artifact
         uses: actions/download-artifact@v4
         with:
           name: kody-php7-grpc-package
 
-      - name: Determine Tag
-        id: tag_info
-        run: |
-          BRANCH=${GITHUB_REF#refs/heads/}
-          if [ "$BRANCH" == "main" ]; then
-            DATE=$(date +'%Y%m%d')
-            TAG_PREFIX="${DATE}"
-            echo "Tag prefix: $TAG_PREFIX"
-          
-            # Find the latest tag for the current date
-            LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
-            echo "Latest tag: $LATEST_TAG"
-            if [ -z "$LATEST_TAG" ]; then
-              NEW_TAG="${TAG_PREFIX}.1"
-            else
-              INCREMENT=$(echo "$LATEST_TAG" | grep -oE '[0-9]+$')
-              NEW_TAG="${TAG_PREFIX}.$((INCREMENT+1))"
-            fi
-          else
-            NEW_TAG="${BRANCH}-dev"
-          fi
-          echo "New tag: $NEW_TAG"
-          echo "tag=$NEW_TAG" >> $GITHUB_ENV
-
-      - name: Create Tag
-        run: |
-          git tag ${{ env.tag }}
-          git push origin ${{ env.tag }}
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.tag }}
-          release_name: Release ${{ env.tag }}
-          draft: false
-          prerelease: ${{ github.ref != 'refs/heads/main' }}
-
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

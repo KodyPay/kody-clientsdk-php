@@ -4,12 +4,19 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "kody/kody-php7-grpc-client": "dev-main"
+        "kody/kody-php7-grpc-client": "20240619.1"
     },
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/KodyPay/kody-clientsdk-php7"
+            "type": "package",
+            "package": {
+                "name": "kody/kody-php7-grpc-client",
+                "version": "20240619.1",
+                "dist": {
+                    "type": "zip",
+                    "url": "https://github.com/kody-joao/kody-clientsdk-php7/releases/download/20240619.1/kody-php7-grpc-package.zip"
+                }
+            }
         }
     ],
     "minimum-stability": "dev",

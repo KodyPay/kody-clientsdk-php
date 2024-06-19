@@ -1,2 +1,3 @@
 samples/php7/vendor
 *.lock
+vendor

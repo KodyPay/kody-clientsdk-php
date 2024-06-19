@@ -1,21 +1,15 @@
 {
-    "name": "kody/kody-php7-grpc-client",
-    "description": "A PHP7 gRPC client for Kody terminals",
-    "require": {
-        "grpc/grpc": "^1.57",
-        "google/protobuf": "^3.19.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "Kody\\PHP7\\Grpc\\Pay\\V1\\": "php7/"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "type": "artifact",
-            "url": "https://github.com/KodyPay/kody-clientsdk-php7/packages"
-        }
-    ]
+  "name": "kody/kody-php7-grpc-client",
+  "description": "A PHP7 gRPC client for Kody terminals",
+  "require": {
+    "grpc/grpc": "^1.57",
+    "google/protobuf": "^3.19.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Com\\Kodypay\\Grpc\\Pay\\V1\\": "/"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

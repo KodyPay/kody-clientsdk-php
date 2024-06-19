@@ -98,12 +98,12 @@ jobs:
         run: |
           TAG=$(date +'%Y%m%d_%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            TAGS='tags=[$TAG,"latest"]'
+            TAGS='tags=["$TAG","latest"]'
           else
             TAG=$(date +'%Y%m%d_%H%M')-dev
-            TAGS='tags=[$TAG]'          
+            TAGS='tags=["$TAG"]'          
           fi
-          echo 'Tags: $TAGS'
+          echo "Tags: $TAGS"
           echo "$TAGS" >> "$GITHUB_OUTPUT"
   tagging-echo:
     needs:

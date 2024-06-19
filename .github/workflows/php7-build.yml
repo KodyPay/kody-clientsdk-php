@@ -110,6 +110,8 @@ jobs:
             TAG_PREFIX="${DATE}"
             echo "Tag prefix: $TAG_PREFIX"
           
+            git tag -l "${TAG_PREFIX}*"
+          
             # Find the latest tag for the current date
             LATEST_TAG=$(git tag -l "${TAG_PREFIX}*" | sort -V | tail -n 1)
             echo "Latest tag: $LATEST_TAG"

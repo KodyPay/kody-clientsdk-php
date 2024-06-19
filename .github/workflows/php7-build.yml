@@ -121,6 +121,9 @@ jobs:
       matrix:
         tag: ${{ fromJSON(needs.tagging.outputs.tags) }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up
         env:
           tag: $

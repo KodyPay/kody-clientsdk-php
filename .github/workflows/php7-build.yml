@@ -87,7 +87,7 @@ jobs:
           name: kody-php7-grpc-package
           path: kody-php7-grpc-package.zip
 
-  tagging-and-publishing:
+  tagging:
     needs: build-package
     runs-on: ubuntu-latest
     steps:
@@ -99,26 +99,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kody-php7-grpc-package
-
-      - name: Setting Tag
-        id: tag_info
+      - name: Create and push tag
+        if: github.ref == 'refs/heads/main'
         run: |
-          BRANCH=${GITHUB_REF#refs/heads/}
-          if [ "$BRANCH" == "main" ]; then
-            DATE=$(date +'%Y%m%d_%H%M')
-            git tag "latest"
-            git push origin "latest"
-            NEW_TAG="${DATE}"
-          else
-            NEW_TAG="${BRANCH}-dev"
-          fi
-          echo "New tag: $NEW_TAG"
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
+          TAG_NAME=$(date +'%Y%m%d%H%M%S')
+          git tag $TAG_NAME
+          git tag latest -f
+          git push origin $TAG_NAME
+          git push origin latest -f
+
+      - name: Create and push dev tag
+        if: github.ref != 'refs/heads/main'
+        run: |
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
+          TAG_NAME=dev-$(date +'%Y%m%d%H%M%S')
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+          echo "tag=$TAG_NAME" >> $GITHUB_ENV
+
+  release:
+    needs: tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Create GitHub Release
         id: create_release
@@ -128,6 +132,9 @@ jobs:
         with:
           tag_name: ${{ env.tag }}
           release_name: Release ${{ env.tag }}
+          body: |
+            Changes in this release:
+            ${{ github.event.release.body }}
           draft: false
           prerelease: ${{ github.ref != 'refs/heads/main' }}
 

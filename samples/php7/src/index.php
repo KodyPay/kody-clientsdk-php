@@ -2,8 +2,8 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use KodyBamboo\Grpc\Pay\V1\KodyPayTerminalServiceClient;
-use KodyBamboo\Grpc\Pay\V1\TerminalsRequest;
+use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
+use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
 use Grpc\ChannelCredentials;
 
 function helloWorld() {

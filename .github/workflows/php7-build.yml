@@ -104,6 +104,15 @@ jobs:
           fi
           echo "tag=\"$TAG\"" >> "$GITHUB_OUTPUT"
 
+  tagging-echo:
+    needs:
+      - tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show tag
+        run: |
+          echo "Tag: ${{ needs.tagging.outputs.tag }}"
+
   release:
     needs:
       - build-package
@@ -118,16 +127,17 @@ jobs:
         with:
           name: kody-php7-grpc-package
 
-      - name: Create GitHub Release
+      - name: Create Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          commit: ${{ needs.tagging.outputs.tag }}
+          name: Release ${{ needs.tagging.outputs.tag }}
           tag: ${{ needs.tagging.outputs.tag }}
           body: |
             Changes in this release:
             ${{ github.event.release.body }}
           draft: false
           prerelease: ${{ github.ref != 'refs/heads/main' }}
+          makeLatest: ${{ github.ref == 'refs/heads/main' }}
           artifacts: kody-php7-grpc-package.zip
           artifactContentType: application/zip
           artifactErrorsFailBuild: true

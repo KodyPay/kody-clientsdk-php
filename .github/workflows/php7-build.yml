@@ -87,7 +87,7 @@ jobs:
           name: kody-php7-grpc-package
           path: kody-php7-grpc-package.zip
 
-  tagging:
+  release:
     needs: build-package
     runs-on: ubuntu-latest
     steps:
@@ -102,7 +102,7 @@ jobs:
       - name: Create and push tag
         if: github.ref == 'refs/heads/main'
         run: |
-          TAG_NAME=$(date +'%Y%m%d%H%M%S')
+          TAG_NAME=$(date +'%Y%m%d_%H%M')
           git tag $TAG_NAME
           git tag latest -f
           git push origin $TAG_NAME
@@ -111,18 +111,10 @@ jobs:
       - name: Create and push dev tag
         if: github.ref != 'refs/heads/main'
         run: |
-          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
-          TAG_NAME=dev-$(date +'%Y%m%d%H%M%S')
+          TAG_NAME=dev-$(date +'%Y%m%d_%H%M')
           git tag $TAG_NAME
           git push origin $TAG_NAME
           echo "tag=$TAG_NAME" >> $GITHUB_ENV
-
-  release:
-    needs: tagging
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Create GitHub Release
         id: create_release

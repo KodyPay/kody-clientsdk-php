@@ -6,29 +6,26 @@ use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
 use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
 use Grpc\ChannelCredentials;
 
-function helloWorld() {
-    echo "Hello, World!";
-}
+$api_key = 'SAKtKjZSzKMy5vSw4ihZtt5YJU1FNoaGIyNz4PJ7vCTg'; // Replace with your actual API key
+$store_id = '5fa2dd05-1805-494d-b843-fa1a7c34cf8a';
 
-helloWorld();
-
-
-// Example of how you might use the gRPC client (this requires a running gRPC server)
-$api_key = 'YOUR_API_KEY_HERE'; // Replace with your actual API key
-$store_id = '1854502f-7e50-4633-8506-715690709643';
-
-$client = new KodyPayTerminalServiceClient('https://grpc-staging.kodypay.com/', [
+$client = new KodyPayTerminalServiceClient('grpc.kodypay.com', [
     'credentials' => ChannelCredentials::createInsecure()
 ]);
 
+
 $request = new TerminalsRequest();
+
 $request->setStoreId($store_id);
 
 $metadata = [
     'X-API-Key' => [$api_key]
 ];
 
+echo "Making gRPC request\n";
 list($response, $status) = $client->Terminals($request, $metadata)->wait();
+
+echo "Server response\n";
 
 if ($status->code !== \Grpc\STATUS_OK) {
     echo "gRPC error: " . $status->details . PHP_EOL;

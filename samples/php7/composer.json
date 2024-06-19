@@ -1,20 +1,22 @@
 {
     "name": "kody/kody-php7-grpc-sample",
-    "description": "A PHP7 sample how to use Kody SDK PHP7 client to communicated with Kody terminals",
+    "description": "A PHP7 sample how to use Kody SDK PHP7 client to communicate with Kody terminals",
     "type": "project",
     "license": "MIT",
     "require": {
-        "kody/kody-php7-grpc-client": "20240619.1"
+        "kody/kody-php7-grpc-client": "240619.2146",
+        "grpc/grpc": "^1.57",
+        "google/protobuf": "^3.19.1"
     },
     "repositories": [
         {
             "type": "package",
             "package": {
                 "name": "kody/kody-php7-grpc-client",
-                "version": "20240619.1",
+                "version": "240619.2146",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/kody-joao/kody-clientsdk-php7/releases/download/20240619.1/kody-php7-grpc-package.zip"
+                    "url": "https://github.com/kody-joao/kody-clientsdk-php7/releases/download/240619_2146/kody-php7-grpc-package.zip"
                 }
             }
         }
@@ -23,7 +25,8 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Sample\\": "src/"
+            "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php7-grpc-client/Com/Kodypay/Grpc/Pay/V1",
+            "GPBMetadata\\": "vendor/kody/kody-php7-grpc-client/GPBMetadata"
         }
     }
 }

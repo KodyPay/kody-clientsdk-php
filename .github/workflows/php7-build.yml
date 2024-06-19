@@ -96,7 +96,7 @@ jobs:
       - name: Create tag
         id: tag
         run: |
-          DATE_TAG=$(date +'%y%m%d_%H%M')
+          DATE_TAG=$(date +'%y%m%d.%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             TAG="$DATE_TAG"
           else

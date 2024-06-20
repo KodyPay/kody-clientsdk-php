@@ -91,18 +91,19 @@ jobs:
   tagging:
     runs-on: ubuntu-latest
     outputs:
-      tags: ${{ steps.tags.outputs.tags }}
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Create and push tag
-        id: tags
+      - name: Create tag
+        id: tag
         run: |
-          DATE_TAG=$(date +'%Y%m%d_%H%M')
+          DATE_TAG=$(date +'%y%m%d.%H%M')
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            TAGS="tags=[\"$DATE_TAG\",\"latest\"]"
+            TAG="$DATE_TAG"
           else
-            TAGS="tags=[\"$DATE_TAG-dev\"]"
+            TAG="$DATE_TAG-dev"
           fi
-          echo "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
   tagging-echo:
     needs:
       - tagging
@@ -110,59 +111,33 @@ jobs:
     steps:
       - name: Show tag
         run: |
-          echo "Tags: ${{ needs.tagging.outputs.tags }}"
+          echo "Tag: ${{ needs.tagging.outputs.tag }}"
 
   release:
     needs:
       - build-package
       - tagging
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tag: ${{ fromJSON(needs.tagging.outputs.tags) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up
-        env:
-          tag: $
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          echo "$tag" > tag
-          echo "Releasing TAG: $tag"
-
-      - name: Push tag
-        run: |
-          git tag -f ${{ matrix.tag }}
-          git push -f origin ${{ matrix.tag }}
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ matrix.tag }}
-          release_name: Release ${{ matrix.tag }}
-          body: |
-            Changes in this release:
-            ${{ github.event.release.body }}
-          draft: false
-          prerelease: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Retrieve Artifact
         uses: actions/download-artifact@v4
         with:
           name: kody-php7-grpc-package
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: kody-php7-grpc-package.zip
-          asset_name: kody-php7-grpc-package.zip
-          asset_content_type: application/zip
+          name: ${{ needs.tagging.outputs.tag }}
+          tag: ${{ needs.tagging.outputs.tag }}
+          body: |
+            Changes in this release:
+            ${{ github.event.release.body }}
+          draft: false
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
+          makeLatest: ${{ github.ref == 'refs/heads/main' }}
+          artifacts: kody-php7-grpc-package.zip
+          artifactContentType: application/zip
+          artifactErrorsFailBuild: true

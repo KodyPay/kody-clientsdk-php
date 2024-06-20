@@ -1,8 +1,3 @@
-Certainly! Here is a comprehensive `README.md` file for the Kody PHP7 library, detailing its purpose, installation, and usage.
-
-### `README.md`
-
-```markdown
 # Kody PHP7 gRPC Client
 
 ## Description

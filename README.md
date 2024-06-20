@@ -63,7 +63,7 @@ To install the gRPC and Protobuf extensions on Windows:
 1. Download the gRPC and Protobuf extension DLLs from the PECL website: https://pecl.php.net/package/grpc and https://pecl.php.net/package/protobuf
 2. Move the downloaded files to the `ext` directory of your PHP installation.
 
-Add the following lines to your `php.ini` file:
+Add the following lines to your `php.ini` file if you are running a live server:
 ```ini
 extension=grpc.so
 ```
@@ -82,35 +82,26 @@ use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
 use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
 use Grpc\ChannelCredentials;
 
-function helloWorld() {
-    echo "Hello, World!";
-}
+$kody_api_hostname = 'grpc.kodypay.com';
+$store_id = '5fa2dd05-1805-494d-b843-fa1a7c34cf8a'; // Use your Kody store ID
+$api_key = ''; // Put your API key
 
-helloWorld();
+$client = new KodyPayTerminalServiceClient($kody_api_hostname, ['credentials' => ChannelCredentials::createSsl()]);
+$metadata = ['X-API-Key' => [$api_key]];
 
-// Example of how you might use the gRPC client (this requires a running gRPC server)
-$api_key = 'YOUR_API_KEY_HERE'; // Replace with your actual API key
-$store_id = '1854502f-7e50-4633-8506-715690709643';
-
-$client = new KodyPayTerminalServiceClient('grpc-staging.kodypay.com', [
-    'credentials' => ChannelCredentials::createInsecure()
-]);
-
-// Example request
+echo "Requesting the list of terminals assigned to the store" . PHP_EOL;
 $request = new TerminalsRequest();
-$request->setApiKey($api_key);
 $request->setStoreId($store_id);
 
-// This is just an example call; the actual method name might differ
-try {
-    $response = $client->ListTerminals($request)->wait();
-    list($terminals, $status) = $response;
-    if ($status->code !== \Grpc\STATUS_OK) {
-        throw new Exception($status->details, $status->code);
+list($response, $status) = $client->Terminals($request, $metadata)->wait();
+
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+} else {
+    echo "Terminals for Store ID: $store_id" . PHP_EOL;
+    foreach ($response->getTerminals() as $terminal) {
+        echo "Terminal ID: " . $terminal->getTerminalId() . " - Online: " . ($terminal->getOnline() ? 'Yes' : 'No') . PHP_EOL;
     }
-    var_dump($terminals);
-} catch (Exception $e) {
-    echo 'Error: ', $e->getMessage();
 }
 ```
 
@@ -119,15 +110,15 @@ Make sure you have completed the installation steps above, then run the example 
 
 ```bash
 cd samples/php7
+composer install
 php src/index.php
 ```
-
-Replace `path/to/your/script.php` with the actual path to your script.
 
 ## Troubleshooting
 If you encounter issues, ensure:
 - All required PHP extensions are installed and enabled.
 - Your `composer.json` is correctly set up and all dependencies are installed.
+- Contact Kody support or tech team
 
 ## License
 This project is licensed under the MIT License.

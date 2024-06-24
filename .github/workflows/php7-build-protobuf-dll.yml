@@ -1,4 +1,4 @@
-name: Build Protobuf DLL for PHP 7.0
+name: PHP 7.0 Build Protobuf DLL
 
 on:
   workflow_dispatch:
@@ -23,13 +23,16 @@ jobs:
           choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"'
 
       - name: Clone Protobuf repository
-        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
+        run: |
+          git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
+          cd protobuf
+          git submodule update --init --recursive
 
       - name: Build Protobuf C++ library
         run: |
-          mkdir protobuf/cmake_build
-          cd protobuf/cmake_build
-          cmake -G "Visual Studio 15 2017 Win64" ..
+          mkdir cmake_build
+          cd cmake_build
+          cmake -G "Visual Studio 16 2019" -A x64 ..
           cmake --build . --config Release
         shell: bash
 

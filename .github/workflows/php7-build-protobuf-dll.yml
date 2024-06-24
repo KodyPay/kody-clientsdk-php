@@ -26,13 +26,14 @@ jobs:
         run: |
           git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
           cd protobuf
+          ls -la
           git submodule update --init --recursive
 
       - name: Build Protobuf C++ library
         run: |
           mkdir cmake_build
           cd cmake_build
-          cmake -G "Visual Studio 16 2019" -A x64 ..
+          cmake -G "Visual Studio 16 2019" -A x64 ../protobuf
           cmake --build . --config Release
         shell: bash
 

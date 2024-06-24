@@ -1,0 +1,59 @@
+name: Build Protobuf DLL for PHP 7.0
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up PHP 7.0
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.0'
+        extensions: mbstring, curl, openssl
+        tools: composer
+
+    - name: Install dependencies
+      run: |
+        choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"'
+        choco install visualstudio2015community --params "'/NoWeb'"
+
+    - name: Clone Protobuf repository
+      run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
+
+    - name: Build Protobuf C++ library
+      run: |
+        mkdir protobuf/cmake_build
+        cd protobuf/cmake_build
+        cmake -G "Visual Studio 14 2015" -A x64 ..
+        cmake --build . --config Release
+      shell: bash
+
+    - name: Prepare PHP extension build
+      run: |
+        cd protobuf/php/ext/google/protobuf
+        phpize
+      shell: bash
+
+    - name: Configure PHP extension
+      run: |
+        cd protobuf/php/ext/google/protobuf
+        configure --with-php-config=$(which php-config)
+      shell: bash
+
+    - name: Build PHP extension
+      run: |
+        cd protobuf/php/ext/google/protobuf
+        nmake
+      shell: bash
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: php_protobuf.dll
+        path: protobuf/php/ext/google/protobuf/modules/php_protobuf.dll

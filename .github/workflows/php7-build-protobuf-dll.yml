@@ -21,45 +21,35 @@ jobs:
         run: choco install msys2
 
       - name: Set up MSYS2 environment and install build tools
-        shell: msys2
         run: |
-          pacman --noconfirm -Syuu
-          pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "pacman --noconfirm -Syuu && pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
 
       - name: Add MinGW to PATH
+        run: echo "C:\\tools\\msys64\\mingw64\\bin" >> $GITHUB_PATH
+
+      - name: Add MinGW to PATH in MSYS2 environment
         run: |
-          echo "C:\\tools\\msys64\\mingw64\\bin" >> $GITHUB_PATH
+          echo 'export PATH=/mingw64/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
+          echo 'export PATH=/usr/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
 
       - name: Clone Protobuf repository
-        shell: msys2
-        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
+        run: C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
 
       - name: Build Protobuf C++ library
-        shell: msys2
         run: |
-          echo $PATH
-          cd protobuf
-          ./autogen.sh
-          ./configure
-          make
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf && ./autogen.sh && ./configure && make"
 
       - name: Prepare PHP extension build
-        shell: msys2
         run: |
-          cd protobuf/php/ext/google/protobuf
-          phpize
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && phpize"
 
       - name: Configure PHP extension
-        shell: msys2
         run: |
-          cd protobuf/php/ext/google/protobuf
-          configure --with-php-config=$(which php-config)
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && configure --with-php-config=$(which php-config)"
 
       - name: Build PHP extension
-        shell: msys2
         run: |
-          cd protobuf/php/ext/google/protobuf
-          nmake
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && nmake"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2

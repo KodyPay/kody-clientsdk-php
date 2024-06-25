@@ -151,7 +151,7 @@ jobs:
         id: tag
         run: |
           echo "TAG from event: ${{ github.event.client_payload.tag }}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   release:
     needs:

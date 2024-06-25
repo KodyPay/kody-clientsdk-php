@@ -1,0 +1,58 @@
+name: PHP 7.0 Build Protobuf DLL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up PHP 7.0
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.0'
+          extensions: mbstring, curl, openssl
+          tools: composer
+
+      - name: Install MSYS2
+        run: choco install msys2
+
+      - name: Set up MSYS2 environment and install build tools
+        run: |
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "pacman --noconfirm -Syuu && pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
+
+      - name: Add PATH in MSYS2 environment
+        run: |
+          echo 'export PATH=/mingw64/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
+          echo 'export PATH=/usr/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
+
+      - name: Clone Protobuf repository
+        run: C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
+
+      - name: Build Protobuf C++ library
+        run: |
+          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf && ./autogen.sh && ./configure && make"
+
+      - name: Prepare PHP extension build in Windows environment
+        run: |
+          cd protobuf\\php\\ext\\google\\protobuf
+          phpize
+
+      - name: Configure PHP extension in Windows environment
+        run: |
+          cd protobuf\\php\\ext\\google\\protobuf
+          configure --with-php-config=php-config
+
+      - name: Build PHP extension in Windows environment
+        run: |
+          cd protobuf\\php\\ext\\google\\protobuf
+          nmake
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: php_protobuf.dll
+          path: protobuf\\php\\ext\\google\\protobuf\\modules\\php_protobuf.dll

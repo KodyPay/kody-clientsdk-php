@@ -1,0 +1,191 @@
+name: PHP Build and Release
+
+on:
+  repository_dispatch:
+    types: [tag-push]
+  workflow_dispatch:
+
+jobs:
+  prepare-grpc-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Build gRPC PHP plugin
+        if: steps.cache-grpc-php-plugin.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y build-essential autoconf libtool pkg-config
+          git clone --recurse-submodules -b v1.64.2  https://github.com/grpc/grpc
+          cd grpc
+          mkdir -p cmake/build
+          cd cmake/build
+          cmake ../..
+          make grpc_php_plugin  
+
+  build-php7-package:
+    needs:
+      - prepare-grpc-plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout proto repository
+        run: |
+          git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, json, grpc, protobuf
+
+      - name: Install Specific Protoc Version
+        run: |
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
+          unzip protoc-27.1-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/* /usr/local/bin/
+          sudo mv protoc/include/* /usr/local/include/
+
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Install gRPC PHP plugin
+        run: |
+          sudo cp ./grpc/cmake/build/grpc_php_plugin /usr/local/bin/
+
+      - name: Compile Protobuf file
+        run: |
+          mkdir -p php7
+          find proto-repo/src/main/proto -name "*.proto" -print0 | xargs -0 protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin
+
+      - name: Require gRPC PHP Extension in Composer
+        run: composer require ext-grpc --no-update
+
+      - name: Package the compiled files
+        run: |
+          zip -r kody-php7-grpc-package.zip php7
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kody-php7-grpc-package
+          path: kody-php7-grpc-package.zip
+
+  build-php8-package:
+    needs:
+      - prepare-grpc-plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout proto repository
+        run: |
+          git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, json, grpc, protobuf
+
+      - name: Install Specific Protoc Version
+        run: |
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v27.1/protoc-27.1-linux-x86_64.zip
+          unzip protoc-27.1-linux-x86_64.zip -d protoc
+          sudo mv protoc/bin/* /usr/local/bin/
+          sudo mv protoc/include/* /usr/local/include/
+
+      - name: Check Protoc Version
+        run: |
+          protoc --version
+
+      - name: Cache gRPC PHP plugin
+        uses: actions/cache@v4
+        id: cache-grpc-php-plugin
+        with:
+          path: |
+            ./grpc/cmake/build
+          key: ${{ runner.os }}-grpc-php-plugin-v1_64_2
+
+      - name: Install gRPC PHP plugin
+        run: |
+          sudo cp ./grpc/cmake/build/grpc_php_plugin /usr/local/bin/
+
+      - name: Compile Protobuf file
+        run: |
+          mkdir -p php8
+          find proto-repo/src/main/proto -name "*.proto" -print0 | xargs -0 protoc --proto_path=proto-repo/src/main/proto --php_out=./php8 --grpc_out=./php8 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin
+
+      - name: Require gRPC PHP Extension in Composer
+        run: composer require ext-grpc --no-update
+
+      - name: Package the compiled files
+        run: |
+          zip -r kody-php8-grpc-package.zip php8
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kody-php8-grpc-package
+          path: kody-php8-grpc-package.zip
+
+  tagging:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - name: Use the tag from the event
+        id: tag
+        run: |
+          echo "TAG from event: ${{ github.event.client_payload.tag }}"
+          echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event.client_payload.tag }}" == *-* ]]; then echo "prerelease=true" >> $GITHUB_OUTPUT; else echo "prerelease=false" >> $GITHUB_OUTPUT; fi
+
+  release:
+    needs:
+      - build-php7-package
+      - build-php8-package
+      - tagging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Retrieve PHP7 Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kody-php7-grpc-package
+
+      - name: Retrieve PHP8 Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kody-php8-grpc-package
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: ${{ needs.tagging.outputs.tag }}
+          tag: ${{ needs.tagging.outputs.tag }}
+          omitBody: true
+          draft: false
+          prerelease: ${{ needs.tagging.outputs.prerelease }}
+          makeLatest: ${{ !needs.tagging.outputs.prerelease }}
+          artifacts: |
+            kody-php7-grpc-package.zip
+            kody-php8-grpc-package.zip
+          artifactContentType: application/zip
+          artifactErrorsFailBuild: true

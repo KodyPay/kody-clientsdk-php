@@ -24,12 +24,10 @@ jobs:
         run: |
           C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "pacman --noconfirm -Syuu && pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
 
-      - name: Add MinGW to PATH
-        run: echo "C:\\tools\\msys64\\mingw64\\bin" >> $GITHUB_PATH
-
-      - name: Add MinGW to PATH in MSYS2 environment
+      - name: Add PATH in MSYS2 environment
         run: |
           echo 'export PATH=/mingw64/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
+          echo 'export PATH=/c/tools/php:$PATH' >> C:\\tools\\msys64\\etc\\profile
           echo 'export PATH=/usr/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
 
       - name: Clone Protobuf repository

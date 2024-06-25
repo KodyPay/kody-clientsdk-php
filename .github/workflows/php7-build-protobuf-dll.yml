@@ -28,10 +28,19 @@ jobs:
       - name: Clone Protobuf repository
         run: C:\tools\msys64\usr\bin\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
 
-      - name: Build Protobuf C++ library
+      - name: Build Protobuf C++ library 1
         run: |
+          C:\tools\msys64\usr\bin\bash.exe -lc "ls -la"
           C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./autogen.sh"
+        shell: bash
+
+      - name: Build Protobuf C++ library 2
+        run: |
           C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./configure"
+        shell: bash
+
+      - name: Build Protobuf C++ library 2
+        run: |
           C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && make"
         shell: bash
 

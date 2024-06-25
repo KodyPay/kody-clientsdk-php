@@ -1,9 +1,8 @@
 name: PHP Build and Release
 
 on:
-  push:
-    branches:
-      - '**'
+  repository_dispatch:
+    types: [tag-push]
   workflow_dispatch:
 
 jobs:
@@ -148,25 +147,10 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Create tag
+      - name: Use the tag from the event
         id: tag
         run: |
-          DATE_TAG=$(date +'%y%m%d.%H%M')
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            TAG="$DATE_TAG"
-          else
-            TAG="$DATE_TAG-dev"
-          fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-
-  tagging-echo:
-    needs:
-      - tagging
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show tag
-        run: |
-          echo "Tag: ${{ needs.tagging.outputs.tag }}"
+          echo "TAG from event: ${{ github.event.client_payload.tag }}"
 
   release:
     needs:

@@ -21,30 +21,45 @@ jobs:
         run: choco install msys2
 
       - name: Set up MSYS2 environment and install build tools
+        shell: msys2
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "pacman --noconfirm -Syuu && pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
+          pacman --noconfirm -Syuu
+          pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git
 
       - name: Add MinGW to PATH
-        run: echo "C:\\tools\\msys64\\mingw64\\bin" >> $GITHUB_PATH
+        run: |
+          echo "C:\\tools\\msys64\\mingw64\\bin" >> $GITHUB_PATH
 
       - name: Clone Protobuf repository
-        run: C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
+        shell: msys2
+        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
 
       - name: Build Protobuf C++ library
+        shell: msys2
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf && ./autogen.sh && ./configure && make"
+          echo $PATH
+          cd protobuf
+          ./autogen.sh
+          ./configure
+          make
 
       - name: Prepare PHP extension build
+        shell: msys2
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && phpize"
+          cd protobuf/php/ext/google/protobuf
+          phpize
 
       - name: Configure PHP extension
+        shell: msys2
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && configure --with-php-config=$(which php-config)"
+          cd protobuf/php/ext/google/protobuf
+          configure --with-php-config=$(which php-config)
 
       - name: Build PHP extension
+        shell: msys2
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && nmake"
+          cd protobuf/php/ext/google/protobuf
+          nmake
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2

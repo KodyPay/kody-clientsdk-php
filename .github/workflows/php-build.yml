@@ -68,7 +68,7 @@ jobs:
       - name: Compile Protobuf file
         run: |
           mkdir -p php7
-          protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+          find proto-repo/src/main/proto -name "*.proto" -print0 | xargs -0 protoc --proto_path=proto-repo/src/main/proto --php_out=./php7 --grpc_out=./php7 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin
 
       - name: Require gRPC PHP Extension in Composer
         run: composer require ext-grpc --no-update
@@ -127,7 +127,7 @@ jobs:
       - name: Compile Protobuf file
         run: |
           mkdir -p php8
-          protoc --proto_path=proto-repo/src/main/proto --php_out=./php8 --grpc_out=./php8 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin proto-repo/src/main/proto/com/kodypay/grpc/pay/v1/pay.proto
+          find proto-repo/src/main/proto -name "*.proto" -print0 | xargs -0 protoc --proto_path=proto-repo/src/main/proto --php_out=./php8 --grpc_out=./php8 --plugin=protoc-gen-grpc=/usr/local/bin/grpc_php_plugin
 
       - name: Require gRPC PHP Extension in Composer
         run: composer require ext-grpc --no-update

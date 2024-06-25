@@ -19,30 +19,23 @@ jobs:
 
       - name: Install MSYS2
         run: choco install msys2
-
       - name: Set up MSYS2 environment and install build tools
+        shell: msys2
         run: |
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu"
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
+          pacman --noconfirm -Syuu
+          pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git
 
       - name: Clone Protobuf repository
-        run: C:\tools\msys64\usr\bin\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
+        shell: msys2
+        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
 
-      - name: Build Protobuf C++ library 1
+      - name: Build Protobuf C++ library
+        shell: msys2
         run: |
-          C:\tools\msys64\usr\bin\bash.exe -lc "ls -la"
-          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./autogen.sh"
-        shell: bash
-
-      - name: Build Protobuf C++ library 2
-        run: |
-          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./configure"
-        shell: bash
-
-      - name: Build Protobuf C++ library 2
-        run: |
-          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && make"
-        shell: bash
+          cd protobuf
+          ./autogen.sh
+          ./configure
+          make
 
       - name: Prepare PHP extension build
         run: |
@@ -50,20 +43,3 @@ jobs:
           phpize
         shell: bash
 
-      - name: Configure PHP extension
-        run: |
-          cd protobuf/php/ext/google/protobuf
-          configure --with-php-config=$(which php-config)
-        shell: bash
-
-      - name: Build PHP extension
-        run: |
-          cd protobuf/php/ext/google/protobuf
-          nmake
-        shell: bash
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: php_protobuf.dll
-          path: protobuf/php/ext/google/protobuf/modules/php_protobuf.dll

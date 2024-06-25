@@ -1,4 +1,4 @@
-name: PHP Build and Release
+name: PHP8 Build and Release
 
 on:
   push:

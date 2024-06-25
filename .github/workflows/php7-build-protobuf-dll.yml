@@ -23,7 +23,7 @@ jobs:
       - name: Set up MSYS2 environment and install build tools
         run: |
           C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu"
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool"
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool git"
 
       - name: Clone Protobuf repository
         run: C:\tools\msys64\usr\bin\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"

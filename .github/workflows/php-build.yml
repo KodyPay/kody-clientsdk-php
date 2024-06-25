@@ -146,12 +146,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
     steps:
       - name: Use the tag from the event
         id: tag
         run: |
           echo "TAG from event: ${{ github.event.client_payload.tag }}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
+          echo "prerelease=${{ contains(github.event.client_payload.tag, '-') }}" >> $GITHUB_OUTPUT
 
   release:
     needs:
@@ -182,8 +184,8 @@ jobs:
             Changes in this release:
             ${{ github.event.release.body }}
           draft: false
-          prerelease: ${{ github.ref != 'refs/heads/main' }}
-          makeLatest: ${{ github.ref == 'refs/heads/main' }}
+          prerelease: ${{ needs.tagging.outputs.prerelease }}
+          makeLatest: ${{ !needs.tagging.outputs.prerelease }}
           artifacts: |
             kody-php7-grpc-package.zip
             kody-php8-grpc-package.zip

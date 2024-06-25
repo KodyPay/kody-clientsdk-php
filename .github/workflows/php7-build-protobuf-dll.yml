@@ -27,7 +27,6 @@ jobs:
       - name: Add PATH in MSYS2 environment
         run: |
           echo 'export PATH=/mingw64/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
-          echo 'export PATH=/c/tools/php:$PATH' >> C:\\tools\\msys64\\etc\\profile
           echo 'export PATH=/usr/bin:$PATH' >> C:\\tools\\msys64\\etc\\profile
 
       - name: Clone Protobuf repository
@@ -37,20 +36,23 @@ jobs:
         run: |
           C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf && ./autogen.sh && ./configure && make"
 
-      - name: Prepare PHP extension build
+      - name: Prepare PHP extension build in Windows environment
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && phpize"
+          cd protobuf\\php\\ext\\google\\protobuf
+          phpize
 
-      - name: Configure PHP extension
+      - name: Configure PHP extension in Windows environment
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && configure --with-php-config=$(which php-config)"
+          cd protobuf\\php\\ext\\google\\protobuf
+          configure --with-php-config=php-config
 
-      - name: Build PHP extension
+      - name: Build PHP extension in Windows environment
         run: |
-          C:\\tools\\msys64\\usr\\bin\\bash.exe -lc "cd protobuf/php/ext/google/protobuf && nmake"
+          cd protobuf\\php\\ext\\google\\protobuf
+          nmake
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
           name: php_protobuf.dll
-          path: protobuf/php/ext/google/protobuf/modules/php_protobuf.dll
+          path: protobuf\\php\\ext\\google\\protobuf\\modules\\php_protobuf.dll

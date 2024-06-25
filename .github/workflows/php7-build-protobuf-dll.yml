@@ -17,25 +17,28 @@ jobs:
           php-version: '7.0'
           extensions: mbstring, curl, openssl
           tools: composer
-
       - name: Install dependencies
         run: |
-          choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"'
+          choco install msys2
+          choco install make
+          choco install mingw
+          choco install autoconf
+          choco install automake
+          choco install libtool
+
+      - name: Set up MSYS2 environment
+        run: |
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu"
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain"
 
       - name: Clone Protobuf repository
-        run: |
-          git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
-          cd protobuf
-          dir
-          git submodule update --init --recursive
+        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
 
       - name: Build Protobuf C++ library
         run: |
-          mkdir cmake_build
-          cd cmake_build
-          cmake -G "Visual Studio 16 2019" -A x64 ..
-          cmake --build . --config Release
-        working-directory: protobuf
+          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./autogen.sh"
+          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && ./configure"
+          C:\tools\msys64\usr\bin\bash.exe -lc "cd protobuf && make"
         shell: bash
 
       - name: Prepare PHP extension build

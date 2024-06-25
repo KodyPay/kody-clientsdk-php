@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     runs-on: windows-2019
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -27,7 +26,7 @@ jobs:
           C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool"
 
       - name: Clone Protobuf repository
-        run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git
+        run: C:\tools\msys64\usr\bin\bash.exe -lc "git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git"
 
       - name: Build Protobuf C++ library
         run: |

@@ -17,19 +17,14 @@ jobs:
           php-version: '7.0'
           extensions: mbstring, curl, openssl
           tools: composer
-      - name: Install dependencies
-        run: |
-          choco install msys2
-          choco install make
-          choco install mingw
-          choco install autoconf
-          choco install automake
-          choco install libtool
 
-      - name: Set up MSYS2 environment
+      - name: Install MSYS2
+        run: choco install msys2
+
+      - name: Set up MSYS2 environment and install build tools
         run: |
           C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu"
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain"
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -S base-devel mingw-w64-x86_64-toolchain autoconf automake libtool"
 
       - name: Clone Protobuf repository
         run: git clone --branch v3.12.4 --depth 1 https://github.com/protocolbuffers/protobuf.git

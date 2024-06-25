@@ -153,7 +153,7 @@ jobs:
         run: |
           echo "TAG from event: ${{ github.event.client_payload.tag }}"
           echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
-          echo "prerelease=${{ contains(github.event.client_payload.tag, '-') }}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event.client_payload.tag }}" == *-* ]]; then echo "prerelease=true" >> $GITHUB_OUTPUT; else echo "prerelease=false" >> $GITHUB_OUTPUT; fi
 
   release:
     needs:
@@ -180,9 +180,7 @@ jobs:
         with:
           name: ${{ needs.tagging.outputs.tag }}
           tag: ${{ needs.tagging.outputs.tag }}
-          body: |
-            Changes in this release:
-            ${{ github.event.release.body }}
+          omitBody: true
           draft: false
           prerelease: ${{ needs.tagging.outputs.prerelease }}
           makeLatest: ${{ !needs.tagging.outputs.prerelease }}

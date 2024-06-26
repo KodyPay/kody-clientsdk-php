@@ -38,6 +38,11 @@ jobs:
 
       - name: Prepare PHP extension build in Windows environment
         run: |
+          dir
+          dir protobuf
+          dir protobuf\\php
+          dir protobuf\\php\\ext
+          dir protobuf\\php\\ext\\google
           cd protobuf\\php\\ext\\google\\protobuf
           phpize
 

@@ -1,13 +1,14 @@
 {
   "name": "kody/kody-php7-grpc-client",
-  "description": "A PHP7 gRPC client for Kody terminals",
+  "description": "A PHP7 gRPC client for Kody",
   "require": {
     "grpc/grpc": "^1.57",
     "google/protobuf": "^3.19.1"
   },
   "autoload": {
     "psr-4": {
-      "Com\\Kodypay\\Grpc\\Pay\\V1\\": "/"
+      "Com\\Kodypay\\Grpc\\Pay\\V1\\": "src/Com/Kodypay/Grpc/Pay/V1/",
+      "Com\\Kody\\Grpc\\Ecom\\V1\\": "src/Com/Kody/Grpc/Ecom/V1/"
     }
   },
   "minimum-stability": "dev",

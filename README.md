@@ -4,29 +4,29 @@
 The Kody PHP7 gRPC Client is an SDK generated from protobuf protocols to facilitate communication with the Kody Payments Gateway. This library provides a simple and efficient way to integrate Kody payment functionalities into your PHP applications.
 
 ## Requirements
-- PHP 7.x or later
+- PHP 7.2 or later
 - Composer
 - gRPC PHP extension
 
 ## Installation
 
 ### Step 1: Install via Composer
-To install the Kody PHP7 gRPC Client, simply add it to your project's `composer.json` file and run `composer install`.
+To install the Kody PHP gRPC Client, simply add it to your project's `composer.json` file and run `composer install`.
 
 ```json
 {
     "require": {
-        "kody/kody-php7-grpc-client": "240619.2146"
+        "kody/kody-php8-grpc-client": "v1.2.3"
     },
     "repositories": [
         {
             "type": "package",
             "package": {
-                "name": "kody/kody-php7-grpc-client",
-                "version": "240619.2146",
+                "name": "kody/kody-php8-grpc-client",
+                "version": "v1.2.3",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/kody-joao/kody-clientsdk-php7/releases/download/240619_2146/kody-php7-grpc-package.zip"
+                    "url": "https://github.com/kody-joao/kody-clientsdk-php/releases/download/v1.2.3/kody-php8-grpc-package.zip"
                 }
             }
         }

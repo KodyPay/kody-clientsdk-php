@@ -6,7 +6,8 @@
     "require": {
         "kody/kody-php8-grpc-client": "v1.1.*",
         "grpc/grpc": "^1.57",
-        "google/protobuf": "^3.19.1"
+        "google/protobuf": "^3.19.1",
+        "vlucas/phpdotenv": "^4.3"
     },
     "repositories": [
         {
@@ -26,6 +27,7 @@
     "autoload": {
         "psr-4": {
             "Com\\Kody\\Grpc\\Ecom\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kody/Grpc/Ecom/V1",
+            "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Pay/V1",
             "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata"
         }
     }

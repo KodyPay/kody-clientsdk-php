@@ -7,6 +7,6 @@
 <body>
     <h1>Payment Error</h1>
     <p>An error occurred during the payment process. Please try again.</p>
-    <a href="index.php">Back to Checkout</a>
+    <a href="checkout.php">Back to Checkout</a>
 </body>
 </html>

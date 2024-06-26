@@ -1,0 +1,21 @@
+<?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$requiredEnvVars = ['KODY_HOSTNAME', 'KODY_STORE_ID', 'KODY_API_KEY'];
+
+foreach ($requiredEnvVars as $envVar) {
+    if (empty(getenv($envVar))) {
+        throw new Exception("Environment variable $envVar is not set or empty");
+    }
+}
+
+return [
+    'hostname' => getenv('KODY_HOSTNAME') ?: 'grpc.kodypay.com',
+    'store_id' => getenv('KODY_STORE_ID') ?: '',
+    'api_key' => getenv('KODY_API_KEY') ?: '',
+];

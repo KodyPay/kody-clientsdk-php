@@ -4,7 +4,7 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "kody/kody-php8-grpc-client": "v1.1.*",
+        "kody/kody-php8-grpc-client": "v1.2.2",
         "grpc/grpc": "^1.57",
         "google/protobuf": "^3.19.1",
         "vlucas/phpdotenv": "^4.3"
@@ -14,10 +14,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php8-grpc-client",
-                "version": "v1.1.0",
+                "version": "v1.2.2",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php7/releases/download/v1.1.0/kody-php8-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.2.2/kody-php8-grpc-package.zip"
                 }
             }
         }
@@ -26,7 +26,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Com\\Kody\\Grpc\\Ecom\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kody/Grpc/Ecom/V1",
+            "Com\\Kodypay\\Grpc\\Ecom\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Ecom/V1",
             "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Pay/V1",
             "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata"
         }

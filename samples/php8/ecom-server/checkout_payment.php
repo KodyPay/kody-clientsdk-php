@@ -2,8 +2,8 @@
 require __DIR__ . '/../vendor/autoload.php';
 $config = require __DIR__ . '/config.php';
 
-use Com\Kody\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
-use Com\Kody\Grpc\Ecom\V1\PaymentInitiationRequest;
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\PaymentInitiationRequest;
 use Grpc\ChannelCredentials;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

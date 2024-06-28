@@ -19,7 +19,7 @@
     </style>
     <script>
         function fetchTerminals() {
-            fetch('fetch_terminals.php')
+            fetch('terminals_fetch.php')
                 .then(response => response.json())
                 .then(data => {
                     const tableBody = document.getElementById('terminals-body');

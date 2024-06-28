@@ -1,4 +1,4 @@
-# Kody PHP7 gRPC Client
+# Kody PHP gRPC Client
 
 ## Description
 The Kody PHP gRPC Client is an SDK generated from protobuf protocols to facilitate communication with the Kody Payments Gateway. This library provides a simple and efficient way to integrate Kody payment functionalities into your PHP applications.

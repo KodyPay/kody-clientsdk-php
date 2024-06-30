@@ -30,7 +30,8 @@ jobs:
       - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./samples/php8/ecom-server
+          file: ./samples/php8/ecom-server/Dockerfile
           push: true
           tags: ghcr.io/kodypay/kody-clientsdk-php:latest
 

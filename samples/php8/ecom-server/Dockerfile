@@ -19,8 +19,10 @@ RUN cd /app && git clone https://github.com/grpc/grpc \
 
 RUN apk add protobuf
 
+WORKDIR /app
+
 ENV COMPOSER_ALLOW_SUPERUSER 1
-RUN composer install --optimize-autoloader --no-interaction --no-progress \
+RUN composer install --optimize-autoloader --no-interaction --no-progress 
 
 WORKDIR /app/public
 

@@ -3,7 +3,7 @@ name: PHP Sample Server - Build and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - docker
   workflow_dispatch:
 
 jobs:

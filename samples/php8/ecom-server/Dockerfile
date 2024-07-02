@@ -1,23 +1,46 @@
-FROM php:8.3-fpm-alpine
+FROM composer:1.8.6 as composer
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+FROM php:8.3-bullseye as grpc-base
+
+RUN apt-get -qq update && apt-get -qq install -y \
+  autoconf automake cmake curl git libtool \
+  pkg-config unzip zlib1g-dev
+
+ARG MAKEFLAGS=-j8
+
+WORKDIR /github/grpc
+
+RUN git clone https://github.com/grpc/grpc . && \
+  git submodule update --init --recursive
+
+WORKDIR /github/grpc/cmake/build
+
+RUN cmake ../.. && \
+  make protoc grpc_php_plugin
+
+RUN pecl install grpc
+
+######################
+FROM php:8.3-fpm-bullseye
+
+RUN apt-get -qq update && apt-get -qq install -y git
+
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+COPY --from=grpc-base /github/grpc/cmake/build/third_party/protobuf/protoc \
+  /usr/local/bin/protoc
+
+COPY --from=grpc-base /github/grpc/cmake/build/grpc_php_plugin \
+  /usr/local/bin/protoc-gen-grpc
+
+COPY --from=grpc-base \
+  /usr/local/lib/php/extensions/no-debug-non-zts-20190902/grpc.so \
+  /usr/local/lib/php/extensions/no-debug-non-zts-20190902/grpc.so
+
+RUN docker-php-ext-enable grpc
 
 COPY public/ /app/public
 COPY composer.json /app
-
-RUN apk add --update linux-headers \
-   && apk add --no-cache autoconf gcc make g++ zlib-dev git cmake \
-   && pecl channel-update pecl.php.net \
-   # Install the grpc extension
-   && pecl install grpc \
-   && docker-php-ext-enable grpc
-
-# INstall gRPC PHP plugin
-RUN cd /app && git clone https://github.com/grpc/grpc \
-   && cd /app/grpc && git submodule update --init \
-   && mkdir -p cmake/build && cd cmake/build && cmake ../.. && make protoc grpc_php_plugin
-
-RUN apk add protobuf
 
 WORKDIR /app
 

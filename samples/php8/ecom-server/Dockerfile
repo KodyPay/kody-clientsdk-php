@@ -1,4 +1,4 @@
-FROM composer:1.8.6 as composer
+FROM composer:latest as composer
 
 FROM php:8.3-bullseye as grpc-base
 
@@ -34,8 +34,8 @@ COPY --from=grpc-base /github/grpc/cmake/build/grpc_php_plugin \
   /usr/local/bin/protoc-gen-grpc
 
 COPY --from=grpc-base \
-  /usr/local/lib/php/extensions/no-debug-non-zts-20190902/grpc.so \
-  /usr/local/lib/php/extensions/no-debug-non-zts-20190902/grpc.so
+  /usr/local/lib/php/extensions/no-debug-non-zts-20230831/grpc.so \
+  /usr/local/lib/php/extensions/no-debug-non-zts-20230831/grpc.so
 
 RUN docker-php-ext-enable grpc
 
@@ -45,6 +45,7 @@ COPY composer.json /app
 WORKDIR /app
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
+RUN apt-get install -y protobuf-compiler zip unzip
 RUN composer install --optimize-autoloader --no-interaction --no-progress 
 
 WORKDIR /app/public

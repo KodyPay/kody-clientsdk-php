@@ -1,5 +1,5 @@
 {
-    "name": "kody/kody-php8-grpc-sample-ecom",
+    "name": "kody/kody-php8-grpc-sample-terminals",
     "description": "A PHP8 sample how to use Kody SDK PHP client to make payments",
     "type": "project",
     "license": "MIT",
@@ -27,7 +27,8 @@
     "autoload": {
         "psr-4": {
             "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Pay/V1",
-            "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata"
+            "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata",
+            "KodyPayTerminalDemo\\": "src/"
         }
     }
 }

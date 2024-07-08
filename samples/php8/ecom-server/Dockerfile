@@ -15,8 +15,7 @@ RUN git clone https://github.com/grpc/grpc . && \
 
 WORKDIR /github/grpc/cmake/build
 
-RUN cmake ../.. && \
-  make protoc grpc_php_plugin
+RUN cmake ../.. && make grpc_php_plugin
 
 RUN pecl install grpc
 
@@ -27,26 +26,19 @@ RUN apt-get -qq update && apt-get -qq install -y git
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-COPY --from=grpc-base /github/grpc/cmake/build/third_party/protobuf/protoc \
-  /usr/local/bin/protoc
-
-COPY --from=grpc-base /github/grpc/cmake/build/grpc_php_plugin \
-  /usr/local/bin/protoc-gen-grpc
-
 COPY --from=grpc-base \
   /usr/local/lib/php/extensions/no-debug-non-zts-20230831/grpc.so \
   /usr/local/lib/php/extensions/no-debug-non-zts-20230831/grpc.so
 
 RUN docker-php-ext-enable grpc
+RUN apt-get install -y zip unzip
 
 COPY public/ /app/public
 COPY composer.json /app
-
 WORKDIR /app
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
-RUN apt-get install -y protobuf-compiler zip unzip
-RUN composer install --optimize-autoloader --no-interaction --no-progress 
+RUN composer install --optimize-autoloader --no-interaction
 
 WORKDIR /app/public
 

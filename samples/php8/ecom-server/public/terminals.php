@@ -27,7 +27,7 @@
 
                     data.terminals.forEach(terminal => {
                         const row = document.createElement('tr');
-                        row.innerHTML = `<td>${terminal.terminalId}</td><td>${terminal.online}</td>`;
+                        row.innerHTML = `<td>${terminal.terminalId}</td><td>${terminal.online}</td><td><a href="terminal_payment_form.php?tid=${terminal.terminalId}">Payment</a></td>`;
                         tableBody.appendChild(row);
                     });
                 })
@@ -45,6 +45,7 @@
     <tr>
         <th>Terminal ID</th>
         <th>Online</th>
+        <th>Payment</th>
     </tr>
     </thead>
     <tbody id="terminals-body">

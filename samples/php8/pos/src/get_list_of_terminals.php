@@ -6,9 +6,9 @@ use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
 use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
 use Grpc\ChannelCredentials;
 
-$kody_api_hostname = 'grpc.kodypay.com';
-$store_id = '5fa2dd05-1805-494d-b843-fa1a7c34cf8a'; // Use your Kody store ID
-$api_key = ''; // Put your API key
+$kody_api_hostname = 'grpc-staging.kodypay.com';
+$store_id = 'c4cebf51-b006-4bb9-acd5-bb4bcdbd6e09'; // Use your Kody store ID
+$api_key = '0aY8Gqnx95WpmGnl6w8bxYO99As1vycBsb6soE_CQwd2'; // Put your API key
 
 $client = new KodyPayTerminalServiceClient($kody_api_hostname, ['credentials' => ChannelCredentials::createSsl()]);
 $metadata = ['X-API-Key' => [$api_key]];

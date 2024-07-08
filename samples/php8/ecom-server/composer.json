@@ -4,7 +4,7 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "kody/kody-php8-grpc-client": "v1.2.2",
+        "kody/kody-php8-grpc-client": "v1.2.5",
         "grpc/grpc": "^1.57",
         "google/protobuf": "^3.19.1",
         "vlucas/phpdotenv": "^4.3"
@@ -14,10 +14,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php8-grpc-client",
-                "version": "v1.2.2",
+                "version": "v1.2.5",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.2.2/kody-php8-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.2.5/kody-php8-grpc-package.zip"
                 }
             }
         }

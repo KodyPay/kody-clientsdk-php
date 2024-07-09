@@ -2,7 +2,7 @@
 
 namespace KodyPayTerminalDemo;
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/config.php';
 
 // Check if form is submitted with required parameters
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['amount'], $_POST['tid'])) {

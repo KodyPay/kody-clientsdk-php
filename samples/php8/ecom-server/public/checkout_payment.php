@@ -7,10 +7,6 @@ use Com\Kodypay\Grpc\Ecom\V1\PaymentInitiationRequest;
 use Grpc\ChannelCredentials;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $amount = $_POST['amount'];
-    $currency = $_POST['currency'];
-    $orderId = $_POST['order_id'];
-    $returnUrl = 'http://localhost:8080/checkout_return.php?order_id=$orderId';
     $paymentReference = uniqid('pay_', true);
 
     $client = new KodyEcomPaymentsServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
@@ -19,10 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request = new PaymentInitiationRequest();
     $request->setStoreId($config['store_id']);
     $request->setPaymentReference($paymentReference);
-    $request->setAmount($amount*100);
-    $request->setCurrency($currency);
-    $request->setOrderId($orderId);
-    $request->setReturnUrl($returnUrl);
+    $request->setAmount($_POST['amount']*100);
+    $request->setCurrency($_POST['currency']);
+    $request->setOrderId($_POST['order_id']);
+    $request->setReturnUrl($config['redirect_url'].'?order_id=$orderId');
 
     list($response, $status) = $client->InitiatePayment($request, $metadata)->wait();
 

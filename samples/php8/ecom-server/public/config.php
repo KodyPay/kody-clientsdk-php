@@ -1,4 +1,5 @@
 <?php
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
@@ -14,8 +15,12 @@ foreach ($requiredEnvVars as $envVar) {
     }
 }
 
-return [
+$config = [
     'hostname' => getenv('KODY_HOSTNAME') ?: 'grpc.kodypay.com',
     'store_id' => getenv('KODY_STORE_ID') ?: '',
     'api_key' => getenv('KODY_API_KEY') ?: '',
+    'currency' => getenv('KODY_STORE_CURRENCY') ?: '',
+    'redirect_url' => getenv('PAYMENT_REDIRECT_URL') ?: '',
 ];
+
+return $config;

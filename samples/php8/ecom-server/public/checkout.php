@@ -68,7 +68,7 @@ $randomOrderId = generateRandomOrderId();
     <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required>
 
     <label for="currency">Currency:</label>
-    <input type="text" id="currency" name="currency" value="GBP" class="readonly" readonly>
+    <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly" readonly>
 
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
@@ -85,8 +85,8 @@ if (isset($_GET['error'])) {
 <h2>Developer Information</h2>
 <p>This page demonstrates how to initiate a payment. The form above collects the necessary information and sends a payment request to the backend.</p>
 <ul>
-    <li><strong>Amount:</strong> The amount to be charged, in minor units (e.g., 2000 for £20.00).</li>
-    <li><strong>Currency:</strong> The currency in which the payment will be made. This is fixed as GBP for this demo.</li>
+    <li><strong>Amount:</strong> The amount to be charged, in minor units (e.g., 2000 for 20.00).</li>
+    <li><strong>Currency:</strong> The currency in which the payment will be made. This is configured in code for this demo.</li>
     <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
     <li><strong>Return URL:</strong> The URL to which the user will be redirected after the payment is completed. This is shown as a read-only field to demonstrate what the return URL will be.</li>
 </ul>

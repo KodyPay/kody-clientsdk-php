@@ -71,7 +71,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required>
 
     <label for="currency">Currency:</label>
-    <input type="text" id="currency" name="currency" value="GBP" class="readonly" readonly>
+    <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly" readonly>
 
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>

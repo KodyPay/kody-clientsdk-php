@@ -1,26 +1,36 @@
 <?php
 
-namespace KodyPayTerminalDemo;
-
 require __DIR__ . '/../vendor/autoload.php';
+$config = require __DIR__ . '/config.php';
 
-use KodyPayTerminalDemo\KodyTerminalClient;
+use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
+use Com\Kodypay\Grpc\Pay\V1\PaymentDetailsRequest;
+use Grpc\ChannelCredentials;
 
 if (isset($_GET['order_id'])) {
     $orderId = $_GET['order_id'];
 
-    $client = new KodyTerminalClient();
-    $paymentDetails = $client->getDetails($orderId);
+    $client = new KodyPayTerminalServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
+    $metadata = ['X-API-Key' => [$config['api_key']]];
 
-    echo json_encode([
-        'status' => $paymentDetails->getStatus(),
-        'order_id' => $paymentDetails->getOrderId(),
-        'date_created' => $paymentDetails->getDateCreated(),
-        'date_paid' => $paymentDetails->getDatePaid(),
-        'failure_reason' => $paymentDetails->getFailureReason(),
-        'ext_payment_ref' => $paymentDetails->getExtPaymentRef(),
-        'receipt_json' => $paymentDetails->getReceiptJson(),
-    ]);
+    $request = new PaymentDetailsRequest();
+    $request->setStoreId($config['store_id']);
+    $request->setOrderId($orderId);
+
+    list($response, $status) = $client->PaymentDetails($request, $metadata)->wait();
+
+    $status = $response->getStatus();
+    $data = [
+        'status' => $status,
+        'orderId' => $response->getOrderId(),
+        'dateCreated' => $response->getDateCreated()->serializeToJsonString(),
+        'datePaid' => $response->getDatePaid() ? $response->getDatePaid()->serializeToJsonString() : null,
+        'failureReason' => $response->getFailureReason(),
+        'extPaymentRef' => $response->getExtPaymentRef(),
+        'receiptJson' => $response->getReceiptJson()
+    ];
+
+    echo json_encode($data);
 } else {
-    echo json_encode(['status' => 'ERROR', 'message' => 'Invalid request.']);
+    echo json_encode(['error' => 'Invalid request']);
 }

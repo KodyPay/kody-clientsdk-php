@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $client = new KodyPayTerminalServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
     $metadata = ['X-API-Key' => [$config['api_key']]];
 
+    error_log("Requesting amount: $amount");
+
     // Sending initial payment request
     $req = new PayRequest();
     $req->setStoreId($config['store_id']);
@@ -46,8 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
 
     if ($orderId) {
         echo "<h2>Collecting payment for Order ID: $orderId</h2>";
-        echo "<div id='loading'>Loading... <img src='spinner.gif' alt='loading spinner'></div>";
+        echo "<div id='loading'>Waiting for payment...</div>";
         echo "<div id='payment-result' style='display:none;'></div>";
+        echo "<div id='cancel-button' style='display:none;'>";
+        echo "<form action='terminal_cancel_payment.php' method='POST'>";
+        echo "<input type='hidden' name='terminal_id' value='" . htmlspecialchars($_POST['terminal_id']) . "'>";
+        echo "<input type='hidden' name='store_id' value='" . htmlspecialchars($config['store_id']) . "'>";
+        echo "<input type='hidden' name='amount' value='" . htmlspecialchars($amount) . "'>";
+        echo "<input type='hidden' name='order_id' value='" . htmlspecialchars($orderId) . "'>";
+        echo "<button type='submit'>Cancel Payment</button>";
+        echo "</form>";
+        echo "</div>";
     } else {
         error_log("Error: Unable to initiate payment.");
         echo "<h2>Error: Unable to initiate payment.</h2>";
@@ -69,13 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
                 if (xhr.status === 200) {
                     let response = JSON.parse(xhr.responseText);
                     if (response.status === 0) {
+                        document.getElementById('cancel-button').style.display = 'block';
                         setTimeout(checkPaymentStatus, 1000);
                     } else {
                         document.getElementById('loading').style.display = 'none';
                         let resultDiv = document.getElementById('payment-result');
                         resultDiv.style.display = 'block';
                         resultDiv.innerHTML = `<h2>Payment Status: ${response.status}</h2><pre>${JSON.stringify(response, null, 2)}</pre>
-                                       <a href="terminal_payment_form.php">New payment</a> | <a href="terminals.php">Terminals list</a>`;
+                                               <a href="terminal_payment_form.php">New payment</a> | <a href="terminals.php">Terminals list</a>`;
                     }
                 } else {
                     console.error('Error checking payment status:', xhr.statusText);

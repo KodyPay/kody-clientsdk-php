@@ -1,10 +1,10 @@
 <?php
 // payment_result.php
 
-// Check if the 'result' query parameter is set
-if (isset($_GET['result'])) {
-    // Get the value of the 'result' query parameter
-    $result = $_GET['result'];
+// Check if the 'status' query parameter is set
+if (isset($_GET['status'])) {
+    // Get the value of the 'status' query parameter
+    $result = $_GET['status'];
 
     // Define the possible payment outcomes
     $paymentOutcomes = ['success', 'failure', 'expired', 'error'];

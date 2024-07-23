@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request->setAmount($_POST['amount']);
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
-    $request->setReturnUrl($config['redirect_url'].'?order_id=$orderId');
+    $request->setReturnUrl($config['redirect_url'].'?order_id='.$_POST['order_id']);
 
     list($response, $status) = $client->InitiatePayment($request, $metadata)->wait();
 

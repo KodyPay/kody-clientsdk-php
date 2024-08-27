@@ -88,7 +88,7 @@ $randomOrderId = generateRandomOrderId();
         </div>
     </div>
     <label for="expiring_seconds">Expiring seconds:</label>
-    <input type="text" id="expiring_seconds" name="expiring_seconds" value="<?php echo $config['expiring_seconds']; ?>">
+    <input type="number" id="expiring_seconds" name="expiring_seconds" min="0" oninput="validity.valid||(value='');" value="<?php echo $config['expiring_seconds']; ?>">
 
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
 

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   php-fpm:
     build:
@@ -11,6 +9,7 @@ services:
       KODY_HOSTNAME: "grpc-staging.kodypay.com"
       KODY_STORE_ID: "c4cebf51-b006-4bb9-acd5-bb4bcdbd6e09"
       KODY_API_KEY: "0aY8Gqnx95WpmGnl6w8bxYO99As1vycBsb6soE_CQwd2"
+      PAYMENT_EXPIRING_SECONDS: 900
 
   nginx:
     image: nginx:latest

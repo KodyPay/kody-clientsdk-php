@@ -13,12 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $metadata = ['X-API-Key' => [$config['api_key']]];
 
     $request = new PaymentInitiationRequest();
+    $expiry = new PaymentInitiationRequest\ExpirySettings();
+
+    $expiry->setShowTimer($_POST['show_timer']);
+    $expiry->setExpiringSeconds($_POST['expiring_seconds']);
+
     $request->setStoreId($config['store_id']);
     $request->setPaymentReference($paymentReference);
     $request->setAmount($_POST['amount']);
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
     $request->setReturnUrl($config['redirect_url'].'?order_id='.$_POST['order_id']);
+    $request->setExpiry($expiry);
 
     list($response, $status) = $client->InitiatePayment($request, $metadata)->wait();
 

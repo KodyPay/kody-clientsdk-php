@@ -13,10 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $metadata = ['X-API-Key' => [$config['api_key']]];
 
     $request = new PaymentInitiationRequest();
-    $expiry = new PaymentInitiationRequest\ExpirySettings();
-
-    $expiry->setShowTimer($_POST['show_timer']);
-    $expiry->setExpiringSeconds($_POST['expiring_seconds']);
 
     $request->setStoreId($config['store_id']);
     $request->setPaymentReference($paymentReference);
@@ -24,7 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
     $request->setReturnUrl($config['redirect_url'].'?order_id='.$_POST['order_id']);
-    $request->setExpiry($expiry);
+
+    if (isset($_POST['enable_expiration'])) {
+        $expiry = new PaymentInitiationRequest\ExpirySettings();
+
+        $expiry->setShowTimer($_POST['show_timer']);
+        $expiry->setExpiringSeconds($_POST['expiring_seconds']);
+
+        $request->setExpiry($expiry);
+    }
 
     list($response, $status) = $client->InitiatePayment($request, $metadata)->wait();
 

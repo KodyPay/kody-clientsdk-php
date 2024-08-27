@@ -16,7 +16,7 @@ foreach ($requiredEnvVars as $envVar) {
 }
 
 $config = [
-    'hostname' => $_ENV['KODY_HOSTNAME'] ?: 'grpc.kodypay.com',
+    'hostname' => $_ENV['KODY_HOSTNAME'] ?: 'grpc-staging.kodypay.com',
     'store_id' => $_ENV['KODY_STORE_ID'] ?: '',
     'api_key' => $_ENV['KODY_API_KEY'] ?: '',
     'currency' => $_ENV['KODY_STORE_CURRENCY'] ?: '',

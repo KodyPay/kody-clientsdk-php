@@ -78,7 +78,17 @@ $randomOrderId = generateRandomOrderId();
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
-    <div style="margin-bottom: 20px;">
+    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+        <label for="enable_expiration">Enable expiration: </label>
+        <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="valueChanged()">
+    </div>
+
+    <div id="expiration_fields" style="display: none; margin-bottom: 20px;
+    padding: 20px; border: 1px solid #ccc; border-radius: 4px">
+        <label for="expiring_seconds">Expiring seconds:</label>
+        <input type="number" id="expiring_seconds" name="expiring_seconds" min="0" oninput="validity.valid||(value='');"
+               value="<?php echo $config['expiring_seconds']; ?>">
+
         <label for="show_timer">Show timer:</label>
         <div style="margin-top:5px;">
             <select id="show_timer" name="show_timer">
@@ -87,13 +97,21 @@ $randomOrderId = generateRandomOrderId();
             </select>
         </div>
     </div>
-    <label for="expiring_seconds">Expiring seconds:</label>
-    <input type="number" id="expiring_seconds" name="expiring_seconds" min="0" oninput="validity.valid||(value='');" value="<?php echo $config['expiring_seconds']; ?>">
 
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
 
     <button type="submit">Pay</button>
 </form>
+
+<script type="text/javascript">
+    function valueChanged() {
+        if (document.getElementById('enable_expiration').checked) {
+            document.getElementById("expiration_fields").style.display = 'block';
+        } else {
+            document.getElementById("expiration_fields").style.display = 'none';
+        }
+    }
+</script>
 
 <?php
 if (isset($_GET['error'])) {

@@ -4,7 +4,7 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "kody/kody-php7-grpc-client": "v1.2.*",
+        "kody/kody-php7-grpc-client": "v1.3.*",
         "grpc/grpc": "^1.57",
         "google/protobuf": "^3.19.1"
     },
@@ -13,10 +13,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php7-grpc-client",
-                "version": "v1.2.2",
+                "version": "v1.3.1",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.2.2/kody-php7-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.3.1/kody-php7-grpc-package.zip"
                 }
             }
         }

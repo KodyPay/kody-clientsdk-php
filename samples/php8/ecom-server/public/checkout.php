@@ -5,7 +5,8 @@ $config = require __DIR__ . '/config.php';
 $randomAmount = rand(1, 1000);
 
 // Generate a random order ID with 8 random letters and numbers
-function generateRandomOrderId($length = 8) {
+function generateRandomOrderId($length = 8)
+{
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomOrderId = '';
@@ -18,7 +19,6 @@ function generateRandomOrderId($length = 8) {
 $randomOrderId = generateRandomOrderId();
 ?>
 
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,10 +31,12 @@ $randomOrderId = generateRandomOrderId();
             margin: 0 auto;
             padding: 20px;
         }
+
         label {
             display: block;
             margin-top: 10px;
         }
+
         input[type="number"],
         input[type="text"],
         input[type="url"] {
@@ -45,9 +47,11 @@ $randomOrderId = generateRandomOrderId();
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
         .readonly {
             background-color: #f9f9f9;
         }
+
         button {
             padding: 10px 20px;
             background-color: #4CAF50;
@@ -56,6 +60,7 @@ $randomOrderId = generateRandomOrderId();
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
@@ -73,15 +78,47 @@ $randomOrderId = generateRandomOrderId();
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
+    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+        <label for="enable_expiration">Enable expiration: </label>
+        <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="valueChanged()">
+    </div>
+
+    <div id="expiration_fields" style="display: none; margin-bottom: 20px;
+    padding: 20px; border: 1px solid #ccc; border-radius: 4px">
+        <label for="expiring_seconds">Expiring seconds:</label>
+        <input type="number" id="expiring_seconds" name="expiring_seconds" min="0" oninput="validity.valid||(value='');"
+               value="<?php echo $config['expiring_seconds']; ?>">
+
+        <label for="show_timer">Show timer:</label>
+        <div style="margin-top:5px;">
+            <select id="show_timer" name="show_timer">
+                <option value="true">true</option>
+                <option value="">false</option>
+            </select>
+        </div>
+    </div>
+
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
 
     <button type="submit">Pay</button>
 </form>
+
+<script type="text/javascript">
+    function valueChanged() {
+        if (document.getElementById('enable_expiration').checked) {
+            document.getElementById("expiration_fields").style.display = 'block';
+        } else {
+            document.getElementById("expiration_fields").style.display = 'none';
+        }
+    }
+</script>
+
 <?php
 if (isset($_GET['error'])) {
     echo '<p style="color:red;">Error: ' . htmlspecialchars($_GET['error']) . '</p>';
 }
 ?>
+
 <h2>Developer Information</h2>
 <p>This page demonstrates how to initiate a payment. The form above collects the necessary information and sends a payment request to the backend.</p>
 <ul>

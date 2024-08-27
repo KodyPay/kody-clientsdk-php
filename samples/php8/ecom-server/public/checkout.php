@@ -126,6 +126,13 @@ if (isset($_GET['error'])) {
     <li><strong>Currency:</strong> The currency in which the payment will be made. This is configured in code for this demo.</li>
     <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
     <li><strong>Return URL:</strong> The URL to which the user will be redirected after the payment is completed. This is shown as a read-only field to demonstrate what the return URL will be.</li>
+    <li><strong>Enable expiration:</strong> Show the expiration options and include them in the request.</li>
+    <li style="list-style-type: none">
+        <ul class="inside">
+            <li><strong>Expiration seconds:</strong> The seconds it will take for the payment to expire.</li>
+            <li><strong>Show timer:</strong> A flag that enables the expiration timer to show.</li>
+        </ul>
+    </li>
 </ul>
 </body>
 </html>

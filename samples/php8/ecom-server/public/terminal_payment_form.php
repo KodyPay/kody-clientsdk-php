@@ -18,7 +18,7 @@ function generateRandomOrderId($length = 8) {
 $randomOrderId = generateRandomOrderId();
 
 // Check for the tid query parameter
-$terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : 'S1F2-000158241144362';
+$terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
 ?>
 
 <!DOCTYPE html>
@@ -93,7 +93,6 @@ if (isset($_GET['error'])) {
     echo '<p style="color:red;">Error: ' . htmlspecialchars($_GET['error']) . '</p>';
 }
 ?>
-
 <h2>Developer Information</h2>
 <p>This page demonstrates how to make a payment on a terminal. The form above collects the necessary information and sends a payment request to the terminal.</p>
 <ul>

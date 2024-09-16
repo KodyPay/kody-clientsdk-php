@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $req->setStoreId($config['store_id']);
     $req->setAmount(number_format($amount, 2, '.', ''));
     $req->setTerminalId($_POST['terminal_id']);
+    $req->setShowTips((isset($_POST['show_tips'])) ? $_POST['show_tips'] : false);
 
     error_log("Sending request");
     $timeoutDateTime = (new DateTime())->add(new DateInterval('PT' . (3 * 60) . 'S'));

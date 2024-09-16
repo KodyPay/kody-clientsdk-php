@@ -79,6 +79,11 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     <label for="terminal_id">Terminal ID:</label>
     <input type="text" id="terminal_id" name="terminal_id" value="<?php echo $terminalId; ?>" class="readonly" readonly>
 
+    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+        <label for="show_tips">Show tips: </label>
+        <input type="checkbox" id="show_tips" name="show_tips">
+    </div>
+
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
 
     <button type="submit">Pay</button>

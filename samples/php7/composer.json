@@ -13,10 +13,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php7-grpc-client",
-                "version": "v1.3.1",
+                "version": "v1.3.4",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.3.1/kody-php7-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.3.4/kody-php7-grpc-package.zip"
                 }
             }
         }

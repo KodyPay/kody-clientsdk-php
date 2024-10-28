@@ -23,6 +23,9 @@ if (isset($_GET['order_id'])) {
     $data = [
         'status' => $status,
         'orderId' => $response->getOrderId(),
+        'totalAmount' => $response->getTotalAmount(),
+        'saleAmount' => $response->getSaleAmount(),
+        'tipsAmount' => $response->getTipsAmount(),
         'dateCreated' => $response->getDateCreated()->serializeToJsonString(),
         'datePaid' => $response->getDatePaid() ? $response->getDatePaid()->serializeToJsonString() : null,
         'failureReason' => $response->getFailureReason(),

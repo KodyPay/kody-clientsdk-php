@@ -4,8 +4,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->safeLoad();
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
 
 $requiredEnvVars = ['KODY_HOSTNAME', 'KODY_STORE_ID', 'KODY_API_KEY'];
 
@@ -21,7 +21,6 @@ $config = [
     'api_key' => $_ENV['KODY_API_KEY'] ?: '',
     'currency' => $_ENV['KODY_STORE_CURRENCY'] ?: '',
     'redirect_url' => $_ENV['PAYMENT_REDIRECT_URL'] ?: '',
-    'expiring_seconds' => $_ENV['PAYMENT_EXPIRING_SECONDS'] ?: '',
 ];
 
 return $config;

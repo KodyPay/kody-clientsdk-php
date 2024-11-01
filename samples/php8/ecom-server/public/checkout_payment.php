@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request->setAmount($_POST['amount']);
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
-    $request->setReturnUrl($config['redirect_url'].'?order_id='.$_POST['order_id']);
+    $request->setReturnUrl($config['redirect_url'].'?paymentReference='.$paymentReference);
 
     if (isset($_POST['enable_expiration'])) {
         $expiry = new PaymentInitiationRequest\ExpirySettings();

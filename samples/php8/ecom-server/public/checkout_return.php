@@ -1,5 +1,75 @@
 <?php
-// payment_result.php
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\PaymentDetailsRequest;
+use Grpc\ChannelCredentials;
+
+function paymentStatus(): void
+{
+    if (isset($_GET['paymentReference'])) {
+        $paymentReference = $_GET['paymentReference'];
+        error_log("Making request paymentReference: " . $paymentReference);
+
+        $config = require __DIR__ . '/config.php';
+
+        $client = new KodyEcomPaymentsServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
+        $metadata = ['X-API-Key' => [$config['api_key']]];
+
+        $request = new PaymentDetailsRequest();
+        $request->setStoreId($config['store_id']);
+        $request->setPaymentReference($paymentReference);
+
+        list($response, $status) = $client->PaymentDetails($request, $metadata)->wait();
+        error_log("Status Code: " . $status->code);
+        error_log("Status Details: " . $status->details);
+
+        if ($status->code === 0) { // Check for success
+            if ($response->hasResponse()) {
+                $responseData = $response->getResponse();
+
+                // Access fields within the `Response` message using getters
+                $paymentId = $responseData->getPaymentId() ?? null;
+                $paymentReference = $responseData->getPaymentReference() ?? null;
+                $orderId = $responseData->getOrderId() ?? null;
+                $status = $responseData->getStatus() ?? null; // status is an enum, can be converted if needed
+
+                // Handle Timestamp fields for dateCreated and datePaid
+                $dateCreated = $responseData->getDateCreated()
+                    ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
+                    : null;
+                $datePaid = $responseData->getDatePaid()
+                    ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
+                    : null;
+
+                echo json_encode([
+                    'paymentId' => $paymentId,
+                    'paymentReference' => $paymentReference,
+                    'orderId' => $orderId,
+                    'status' => $status,
+                    'dateCreated' => $dateCreated,
+                    'datePaid' => $datePaid,
+                ]);
+            } elseif ($response->hasError()) {
+                $errorData = $response->getError();
+
+                // Access fields within the `Error` message using getters
+                $errorType = $errorData->getType() ?? null;
+                $errorMessage = $errorData->getMessage() ?? null;
+
+                echo json_encode([
+                    'errorType' => $errorType,
+                    'errorMessage' => $errorMessage,
+                ]);
+            } else {
+                error_log("No valid result found in response.");
+            }
+        } else {
+            error_log("No data");
+        }
+    } else {
+        error_log("No payment reference");
+    }
+}
 
 // Check if the 'status' query parameter is set
 if (isset($_GET['status'])) {
@@ -33,6 +103,8 @@ if (isset($_GET['status'])) {
                 $class = "unknown";
                 break;
         }
+        error_log("Checking status");
+        paymentStatus();
     } else {
         $message = "Invalid payment result.";
         $class = "invalid";

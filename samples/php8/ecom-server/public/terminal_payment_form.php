@@ -104,11 +104,6 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             <option value="ALIPAY">AliPay+</option>
             <option value="WECHAT">WeChat</option>
         </select>
-
-        <div style="display: flex; align-items: flex-end; margin-top:10px;">
-            <label for="activate_qr_code_scanner">Activate QR code scanner: </label>
-            <input type="checkbox" id="activate_qr_code_scanner" name="activate_qr_code_scanner">
-        </div>
     </div>
 
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
@@ -145,9 +140,6 @@ if (isset($_GET['error'])) {
     <li style="list-style-type: none">
         <ul class="inside">
             <li><strong>Payment method type:</strong> Payment method type: CARD (default), ALIPAY, WECHAT.</li>
-            <li><strong>Activate QR code scanner:</strong> Flag to activate the terminal camera to scan the customer's
-                QR Code (true), or display the payment method type QR Code for the user to scan (false, default).
-            </li>
         </ul>
     </li>
 </ul>

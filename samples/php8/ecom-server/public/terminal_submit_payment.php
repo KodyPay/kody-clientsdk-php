@@ -37,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         $paymentMethod = new PaymentMethod();
 
         $paymentMethod->setPaymentMethodType(PaymentMethodType::value($_POST['payment_method_type']));
-        $paymentMethod->setActivateQrCodeScanner($_POST['activate_qr_code_scanner']);
 
         $req->setPaymentMethod($paymentMethod);
     }

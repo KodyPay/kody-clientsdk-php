@@ -100,9 +100,9 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     padding: 20px; border: 1px solid #ccc; border-radius: 4px">
         <label for="payment_method_type">Payment method type:</label>
         <select id="payment_method_type" name="payment_method_type">
+            <option value="CARD">Card</option>
             <option value="ALIPAY">AliPay</option>
             <option value="WECHAT">WeChat</option>
-            <option value="CARD">Card</option>
         </select>
 
         <div style="display: flex; align-items: flex-end; margin-top:10px;">
@@ -140,6 +140,16 @@ if (isset($_GET['error'])) {
     </li>
     <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
     <li><strong>Terminal ID:</strong> The ID of the terminal where the payment will be processed. This is required.</li>
+    <li><strong>Show tips:</strong> Enable showing tips on the terminal. This is optional.</li>
+    <li><strong>Enable payment method:</strong> Show the payment method options and include them in the request.</li>
+    <li style="list-style-type: none">
+        <ul class="inside">
+            <li><strong>Payment method type:</strong> Payment method type: CARD (default), ALIPAY, WECHAT.</li>
+            <li><strong>Activate QR code scanner:</strong> Flag to activate the terminal camera to scan the customer's
+                QR Code (true), or display the payment method type QR Code for the user to scan (false, default).
+            </li>
+        </ul>
+    </li>
 </ul>
 </body>
 </html>

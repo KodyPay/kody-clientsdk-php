@@ -140,7 +140,7 @@ if (isset($_GET['error'])) {
     </li>
     <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
     <li><strong>Terminal ID:</strong> The ID of the terminal where the payment will be processed. This is required.</li>
-    <li><strong>Show tips:</strong> Enable showing tips on the terminal. This is optional.</li>
+    <li><strong>Show tips:</strong> A flag to show (true) or hide (false) the tip options. Default is (false). This is optional.</li>
     <li><strong>Enable payment method:</strong> Show the payment method options and include them in the request.</li>
     <li style="list-style-type: none">
         <ul class="inside">

@@ -104,6 +104,11 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             <option value="ALIPAY">AliPay+</option>
             <option value="WECHAT">WeChat</option>
         </select>
+
+        <div style="display: flex; align-items: flex-end; margin-top:10px;">
+            <label for="activate_qr_code_scanner">Activate QR code scanner: </label>
+            <input type="checkbox" id="activate_qr_code_scanner" name="activate_qr_code_scanner">
+        </div>
     </div>
 
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
@@ -135,11 +140,16 @@ if (isset($_GET['error'])) {
     </li>
     <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
     <li><strong>Terminal ID:</strong> The ID of the terminal where the payment will be processed. This is required.</li>
-    <li><strong>Show tips:</strong> A flag to show (true) or hide (false) the tip options. Default is (false). This is optional.</li>
+    <li><strong>Show tips:</strong> A flag to show (true) or hide (false) the tip options. Default is (false). This is
+        optional.
+    </li>
     <li><strong>Enable payment method:</strong> Show the payment method options and include them in the request.</li>
     <li style="list-style-type: none">
         <ul class="inside">
             <li><strong>Payment method type:</strong> Payment method type: CARD (default), ALIPAY, WECHAT.</li>
+            <li><strong>Activate QR code scanner:</strong> Flag to activate the terminal camera to scan the customer's
+                QR Code (true), or display the payment method type QR Code for the user to scan (false, default).
+            </li>
         </ul>
     </li>
 </ul>

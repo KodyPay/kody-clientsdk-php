@@ -6,6 +6,8 @@ require __DIR__ . '/../vendor/autoload.php';
 $config = require __DIR__ . '/config.php';
 
 use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
+use Com\Kodypay\Grpc\Pay\V1\PaymentMethod;
+use Com\Kodypay\Grpc\Pay\V1\PaymentMethodType;
 use Com\Kodypay\Grpc\Pay\V1\PaymentStatus;
 use Com\Kodypay\Grpc\Pay\V1\PayRequest;
 use Grpc\ChannelCredentials;
@@ -30,6 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $req->setAmount(number_format($amount, 2, '.', ''));
     $req->setTerminalId($_POST['terminal_id']);
     $req->setShowTips((isset($_POST['show_tips'])) ? $_POST['show_tips'] : false);
+
+    if (isset($_POST['enable_payment_method'])) {
+        $paymentMethod = new PaymentMethod();
+
+        $paymentMethod->setPaymentMethodType(PaymentMethodType::value($_POST['payment_method_type']));
+        $paymentMethod->setActivateQrCodeScanner($_POST['activate_qr_code_scanner']);
+
+        $req->setPaymentMethod($paymentMethod);
+    }
 
     error_log("Sending request");
     $timeoutDateTime = (new DateTime())->add(new DateInterval('PT' . (3 * 60) . 'S'));

@@ -1,8 +1,6 @@
 name: PHP Build and Release
 
 on:
-  repository_dispatch:
-    types: [tag-push]
   workflow_dispatch:
 
 jobs:
@@ -148,12 +146,19 @@ jobs:
       tag: ${{ steps.tag.outputs.tag }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
     steps:
-      - name: Use the tag from the event
+      - name: Fetch latest tag from kody-protocols-clientsdk
         id: tag
         run: |
-          echo "TAG from event: ${{ github.event.client_payload.tag }}"
-          echo "tag=${{ github.event.client_payload.tag }}" >> $GITHUB_OUTPUT
-          if [[ "${{ github.event.client_payload.tag }}" == *-* ]]; then echo "prerelease=true" >> $GITHUB_OUTPUT; else echo "prerelease=false" >> $GITHUB_OUTPUT; fi
+          git clone --branch main https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+          cd proto-repo
+          head_tag=$(git describe --tags --exact-match HEAD 2>/dev/null || echo "")
+          if [[ -z "${head_tag}" ]]; then
+            echo "No tag found on the head commit of kp-protocols-clientsdk repo. Failing the action."
+            exit 1
+          else
+            echo "tag=${head_tag}" >> $GITHUB_OUTPUT
+            if [[ "${head_tag}" == *-* ]]; then echo "prerelease=true" >> $GITHUB_OUTPUT; else echo "prerelease=false" >> $GITHUB_OUTPUT; fi
+          fi
 
   release:
     needs:

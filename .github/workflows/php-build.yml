@@ -146,7 +146,7 @@ jobs:
       tag: ${{ steps.tag.outputs.tag }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
     steps:
-      - name: Fetch latest tag from kody-protocols-clientsdk
+      - name: Fetch head tag from kp-protocols-clientsdk
         id: tag
         run: |
           git clone --branch main https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo

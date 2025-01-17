@@ -40,8 +40,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - &checkout-proto-repo
-        name: Checkout proto repository
+      - name: Checkout proto repository
         run: |
           git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
           cd proto-repo || { echo "Failed to change directory to proto-repo"; exit 1; }
@@ -100,9 +99,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - *checkout-proto-repo
-
+      - name: Checkout proto repository
+        run: |
+          git clone https://github.com/KodyPay/kp-protocols-clientsdk.git proto-repo
+          cd proto-repo || { echo "Failed to change directory to proto-repo"; exit 1; }
+          git checkout tags/${{ needs.tagging.outputs.tag }} -b temp-branch || { echo "Failed to checkout tag ${{ needs.tagging.outputs.tag }}"; exit 1; }
+          
+          cd ..
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:

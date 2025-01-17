@@ -3,3 +3,4 @@ samples/php7/vendor
 vendor
 .idea
 .env
+.DS_Store

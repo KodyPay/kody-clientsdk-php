@@ -28,6 +28,7 @@
         "psr-4": {
             "Com\\Kodypay\\Grpc\\Ecom\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Ecom/V1",
             "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Pay/V1",
+            "Com\\Kodypay\\Grpc\\Sdk\\Common\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Sdk/Common",
             "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata"
         }
     }

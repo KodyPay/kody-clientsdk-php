@@ -3,8 +3,7 @@ FROM composer:latest as composer
 FROM php:8.3-bullseye as grpc-base
 
 RUN apt-get -qq update && apt-get -qq install -y \
-  autoconf automake cmake curl git libtool \
-  pkg-config unzip zlib1g-dev libprotobuf-dev protobuf-compiler
+  libprotobuf-dev protobuf-compiler
 
 RUN pecl install grpc
 

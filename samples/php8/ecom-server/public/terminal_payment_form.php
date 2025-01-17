@@ -107,7 +107,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
 
         <div style="display: flex; align-items: flex-end; margin-top:10px;">
             <label for="activate_qr_code_scanner">Activate QR code scanner: </label>
-            <input type="checkbox" id="activate_qr_code_scanner" name="activate_qr_code_scanner">
+            <input type="checkbox" id="activate_qr_code_scanner" name="activate_qr_code_scanner" disabled>
         </div>
     </div>
 
@@ -124,6 +124,15 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             document.getElementById("payment_method_fields").style.display = 'none';
         }
     }
+
+    // Disable the QR code scanner checkbox if the payment method type is CARD
+    document.getElementById('payment_method_type').addEventListener('change', function() {
+        const qrScannerCheckbox = document.getElementById('activate_qr_code_scanner');
+        qrScannerCheckbox.disabled = this.value === 'CARD';
+        if (this.value === 'CARD') {
+            qrScannerCheckbox.checked = false;
+        }
+    });
 </script>
 
 <?php

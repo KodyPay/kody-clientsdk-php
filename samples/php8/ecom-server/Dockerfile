@@ -6,17 +6,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
   autoconf automake cmake curl git libtool \
   pkg-config unzip zlib1g-dev libprotobuf-dev protobuf-compiler
 
-ARG MAKEFLAGS=-j8
-
-# WORKDIR /github/grpc
-
-# RUN git clone https://github.com/grpc/grpc . && \
-#   git submodule update --init --recursive
-
-# WORKDIR /github/grpc/cmake/build
-
-# RUN cmake ../.. && make grpc_php_plugin
-
 RUN pecl install grpc
 
 ######################

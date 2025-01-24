@@ -1,6 +1,7 @@
 <?php
 $config = require __DIR__ . '/config.php';
 
+
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
 use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest;
 use Com\Kodypay\Grpc\Sdk\Common\PageCursor;
@@ -159,6 +160,28 @@ try {
             pointer-events: none;
             border: 1px solid #ddd;
         }
+        button.refund-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #333;
+            border: 1px solid #ddd;
+            background-color: white;
+            margin: 0 4px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button.refund-btn:hover {
+            background-color: #ddd;
+        }
+
+        button.refund-btn:disabled {
+            color: #aaa;
+            border-color: #ddd;
+            background-color: #f9f9f9;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -183,6 +206,7 @@ try {
                     <th>Created Date</th>
                     <th>Paid Date</th>
                     <!-- <th>PSP Reference</th> -->
+                    <th>Refund</th>
                 </tr>
             </thead>
             <tbody>
@@ -198,6 +222,19 @@ try {
                         <td><?php echo isset($payment['date_created']) ? htmlspecialchars($payment['date_created']) : 'N/A'; ?></td>
                         <td><?php echo isset($payment['date_paid']) ? htmlspecialchars($payment['date_paid']) : 'N/A'; ?></td>
                         <!-- <td><?php echo $payment['psp_reference'] ?: 'N/A'; ?></td> -->
+                        <td>
+                            <?php if (getStatusText($payment['status']) === 'SUCCESS'): ?>
+                                <form action="refund-form.php" method="GET">
+                                    <input type="hidden" name="payment_id" value="<?php echo htmlspecialchars($payment['payment_id']); ?>">
+                                    <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($payment['order_id']); ?>">
+                                    <input type="hidden" name="status" value="<?php echo htmlspecialchars(getStatusText($payment['status'])); ?>">
+                                    <input type="hidden" name="date_created" value="<?php echo htmlspecialchars($payment['date_created'] ?? 'N/A'); ?>">
+                                    <input type="hidden" name="date_paid" value="<?php echo htmlspecialchars($payment['date_paid'] ?? 'N/A'); ?>">
+                                    <button type="submit" class="refund-btn">Refund</button>
+                                </form>
+                            <?php endif; ?>
+                        </td>
+
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -221,5 +258,46 @@ try {
     <?php else: ?>
         <p>No payments found.</p>
     <?php endif; ?>
+
+    <script>
+        function processRefund(paymentId) {
+            const amountInput = document.getElementById(`refund-amount-${paymentId}`);
+            const refundAmount = parseFloat(amountInput.value);
+
+            if (isNaN(refundAmount) || refundAmount <= 0) {
+                alert('Please enter a valid refund amount.');
+                return;
+            }
+
+            const confirmation = confirm(`Are you sure you want to refund ${refundAmount} for Payment ID: ${paymentId}?`);
+            if (!confirmation) return;
+
+            // Call the refund API (replace with your actual API endpoint)
+            fetch('refund.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_id: paymentId,
+                    refund_amount: refundAmount,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Refund processed successfully.');
+                        // Optionally reload or update the row
+                    } else {
+                        alert('Refund failed: ' + (data.error || 'Unknown error.'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error processing refund:', error);
+                    alert('An error occurred while processing the refund.');
+                });
+        }
+    </script>
+
 </body>
 </html>

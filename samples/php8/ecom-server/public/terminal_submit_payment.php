@@ -37,7 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         $paymentMethod = new PaymentMethod();
 
         $paymentMethod->setPaymentMethodType(PaymentMethodType::value($_POST['payment_method_type']));
-        $paymentMethod->setActivateQrCodeScanner((isset($_POST['activate_qr_code_scanner'])) ? $_POST['activate_qr_code_scanner'] : false);
+
+        if (isset($_POST['activate_qr_code_scanner'])) {
+            $paymentMethod->setActivateQrCodeScanner($_POST['activate_qr_code_scanner']);
+        }
 
         $req->setPaymentMethod($paymentMethod);
     }
@@ -52,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $orderId = null;
     foreach ($call->responses() as $reply) {
         if ($reply->getStatus() === PaymentStatus::PENDING) {
-            $orderId = $reply->getOrderId();
+            $orderId = $reply->getIdempotencyUuid();
             $_SESSION['current_order_id'] = $orderId;
             break;
         }
@@ -100,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
                         resultDiv.style.display = 'block';
                         resultDiv.innerHTML = `<h2>Payment Status: ${response.status}</h2><pre>${JSON.stringify(response, null, 2)}</pre>
                                                <a href="terminal_payment_form.php">New payment</a> | <a href="terminals.php">Terminals list</a>`;
+                        document.getElementById('cancel-button').style.display = 'none';
                     }
                 } else {
                     console.error('Error checking payment status:', xhr.statusText);

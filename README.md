@@ -16,17 +16,17 @@ To install the Kody PHP gRPC Client, simply add it to your project's `composer.j
 ```json
 {
     "require": {
-        "kody/kody-php8-grpc-client": "v1.2.3"
+        "kody/kody-php8-grpc-client": "v1.5.4"
     },
     "repositories": [
         {
             "type": "package",
             "package": {
                 "name": "kody/kody-php8-grpc-client",
-                "version": "v1.2.3",
+                "version": "v1.5.4",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/kody-joao/kody-clientsdk-php/releases/download/v1.2.3/kody-php8-grpc-package.zip"
+                    "url": "https://github.com/kody-joao/kody-clientsdk-php/releases/download/v1.5.4/kody-php8-grpc-package.zip"
                 }
             }
         }

@@ -101,8 +101,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
         <label for="payment_method_type">Payment method type:</label>
         <select id="payment_method_type" name="payment_method_type">
             <option value="CARD">Card</option>
-            <option value="ALIPAY">AliPay+</option>
-            <option value="WECHAT">WeChat</option>
+            <option value="E_WALLET">E-Wallet</option>
         </select>
 
         <div style="display: flex; align-items: flex-end; margin-top:10px;">

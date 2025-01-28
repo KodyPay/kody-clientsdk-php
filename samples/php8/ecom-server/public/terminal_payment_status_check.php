@@ -22,14 +22,14 @@ if (isset($_GET['order_id'])) {
     $status = $response->getStatus();
     $data = [
         'status' => $status,
-        'orderId' => $response->getOrderId(),
+        'orderId' => $response->getIdempotencyUuid(),
         'totalAmount' => $response->getTotalAmount(),
         'saleAmount' => $response->getSaleAmount(),
         'tipsAmount' => $response->getTipsAmount(),
         'dateCreated' => $response->getDateCreated()->serializeToJsonString(),
         'datePaid' => $response->getDatePaid() ? $response->getDatePaid()->serializeToJsonString() : null,
         'failureReason' => $response->getFailureReason(),
-        'extPaymentRef' => $response->getExtPaymentRef(),
+        'pspReference' => $response->getPspReference(),
         'receiptJson' => $response->getReceiptJson()
     ];
 

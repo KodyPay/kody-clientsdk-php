@@ -1,8 +1,6 @@
 services:
   php-fpm:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     volumes:
       - ./:/app
     environment:

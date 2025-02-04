@@ -10,6 +10,7 @@ use Com\Kodypay\Grpc\Pay\V1\PaymentMethod;
 use Com\Kodypay\Grpc\Pay\V1\PaymentMethodType;
 use Com\Kodypay\Grpc\Pay\V1\PaymentStatus;
 use Com\Kodypay\Grpc\Pay\V1\PayRequest;
+use Com\Kodypay\Grpc\Pay\V1\PayRequest\PaymentMethods;
 use Grpc\ChannelCredentials;
 use Grpc\Metadata;
 
@@ -45,8 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         $req->setPaymentMethod($paymentMethod);
     }
 
+    if (isset($_POST['accepts_only']) && is_array($_POST['accepts_only'])) {
+        $acceptsOnly = array_map(function($method) {
+            return constant(PaymentMethods::class . '::' . $method);
+        }, $_POST['accepts_only']);
+        $req->setAcceptsOnly($acceptsOnly);
+     }
+
     error_log("Sending request");
     $timeoutDateTime = (new DateTime())->add(new DateInterval('PT' . (3 * 60) . 'S'));
+
     $call = $client->Pay($req, $metadata, ['timeout' => $timeoutDateTime]);
 
     error_log("Request submitted");

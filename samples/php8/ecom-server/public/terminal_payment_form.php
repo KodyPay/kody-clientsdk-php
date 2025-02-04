@@ -67,6 +67,12 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
         button:hover {
             background-color: #45a049;
         }
+
+        select[multiple] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -108,6 +114,23 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             <label for="activate_qr_code_scanner">Activate QR code scanner: </label>
             <input type="checkbox" id="activate_qr_code_scanner" name="activate_qr_code_scanner" disabled>
         </div>
+    </div>
+
+    <div id="accepts_only_section" style="margin-bottom: 20px;">
+        <label>Accepts Only (select multiple):</label>
+        <select id="accepts_only" name="accepts_only[]" multiple style="width: 100%; height: 200px;">
+            <option value="VISA">Visa</option>
+            <option value="MASTERCARD">Mastercard</option>
+            <option value="AMEX">Amex</option>
+            <option value="BAN_CONTACT">Ban Contact</option>
+            <option value="CHINA_UNION_PAY">China Union Pay</option>
+            <option value="MAESTRO">Maestro</option>
+            <option value="DINERS">Diners</option>
+            <option value="DISCOVER">Discover</option>
+            <option value="JCB">JCB</option>
+            <option value="ALIPAY">Alipay</option>
+            <option value="WECHAT">WeChat</option>
+        </select>
     </div>
 
     <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">

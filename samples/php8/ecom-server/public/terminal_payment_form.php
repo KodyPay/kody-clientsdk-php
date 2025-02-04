@@ -163,26 +163,26 @@ if (isset($_GET['error'])) {
 }
 ?>
 <h2>Developer Information</h2>
-<p>This page demonstrates how to make a payment on a terminal. The form above collects the necessary information and
-    sends a payment request to the terminal.</p>
+<p>This payment form accepts the following parameters:</p>
 <ul>
-    <li><strong>Amount:</strong> The amount to be charged, in minor units (e.g., 2000 for £20.00).</li>
-    <li><strong>Currency:</strong> The currency in which the payment will be made. This is fixed as GBP for this demo.
-    </li>
-    <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
-    <li><strong>Terminal ID:</strong> The ID of the terminal where the payment will be processed. This is required.</li>
-    <li><strong>Show tips:</strong> A flag to show (true) or hide (false) the tip options. Default is (false). This is
-        optional.
-    </li>
-    <li><strong>Enable payment method:</strong> Show the payment method options and include them in the request.</li>
-    <li style="list-style-type: none">
-        <ul class="inside">
-            <li><strong>Payment method type:</strong> Payment method type: CARD (default), ALIPAY, WECHAT.</li>
-            <li><strong>Activate QR code scanner:</strong> Flag to activate the terminal camera to scan the customer's
-                QR Code (true), or display the payment method type QR Code for the user to scan (false, default).
-            </li>
-        </ul>
-    </li>
+   <li><strong>Amount:</strong> The payment amount in minor units (e.g., 2000 = £20.00)</li>
+   <li><strong>Currency:</strong> Fixed as GBP for this demo</li>
+   <li><strong>Order ID:</strong> Unique order identifier, auto-generated but can be modified</li>
+   <li><strong>Terminal ID:</strong> Required terminal serial number for payment processing</li>
+   <li><strong>Show Tips:</strong> When enabled, displays tipping options on terminal</li>
+   <li><strong>Payment Method Control:</strong>
+       <ul>
+           <li>Enable specific payment flows (Card or E-Wallet)</li>
+           <li>QR scanner activation for E-Wallet payments</li>
+       </ul>
+   </li>
+   <li><strong>Accepts Only:</strong> Multi-select payment method filter
+       <ul>
+           <li>Card: Visa, Mastercard, Amex, Ban Contact, China Union Pay, Maestro, Diners, Discover, JCB</li>
+           <li>E-Wallet: Alipay, WeChat</li>
+           <li>If none selected, all methods are accepted</li>
+       </ul>
+   </li>
 </ul>
 </body>
 </html>

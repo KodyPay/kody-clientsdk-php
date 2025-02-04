@@ -4,7 +4,6 @@ $config = require __DIR__ . '/config.php';
 
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
 use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest;
-use Com\Kodypay\Grpc\Sdk\Common\PageCursor;
 use Grpc\ChannelCredentials;
 
 function getStatusText($statusCode) {
@@ -36,7 +35,7 @@ $request = new GetPaymentsRequest();
 $request->setStoreId($config['store_id']);
 
 // Set up pagination
-$pageCursor = new PageCursor();
+$pageCursor = new GetPaymentsRequest\PageCursor();
 $pageCursor->setPage($currentPage);
 $pageCursor->setPageSize($pageSize);
 $request->setPageCursor($pageCursor);

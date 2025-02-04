@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $request->setStoreId($config['store_id']);
     $request->setPaymentReference($paymentReference);
-    $request->setAmount($_POST['amount']);
+    $request->setAmountMinorUnits($_POST['amount']);
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
     $request->setReturnUrl($config['redirect_url'].'?paymentReference='.$paymentReference);

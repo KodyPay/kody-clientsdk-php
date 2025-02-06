@@ -239,45 +239,5 @@ try {
         <p>No payments found.</p>
     <?php endif; ?>
 
-    <script>
-        function processRefund(paymentId) {
-            const amountInput = document.getElementById(`refund-amount-${paymentId}`);
-            const refundAmount = parseFloat(amountInput.value);
-
-            if (isNaN(refundAmount) || refundAmount <= 0) {
-                alert('Please enter a valid refund amount.');
-                return;
-            }
-
-            const confirmation = confirm(`Are you sure you want to refund ${refundAmount} for Payment ID: ${paymentId}?`);
-            if (!confirmation) return;
-
-            // Call the refund API (replace with your actual API endpoint)
-            fetch('refund.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    payment_id: paymentId,
-                    refund_amount: refundAmount,
-                }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Refund processed successfully.');
-                        // Optionally reload or update the row
-                    } else {
-                        alert('Refund failed: ' + (data.error || 'Unknown error.'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error processing refund:', error);
-                    alert('An error occurred while processing the refund.');
-                });
-        }
-    </script>
-
 </body>
 </html>

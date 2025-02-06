@@ -245,84 +245,90 @@ try {
 
 <!-- Payment Details Table -->
 <table>
-    <tbody>
-    <tr>
-        <th>Payment ID</th>
-        <td><?php echo htmlspecialchars($details->getPaymentId()); ?></td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td><?php echo htmlspecialchars($functions->getStatusText($details->getStatus())); ?></td>
-    </tr>
-    <tr>
-        <th>Date Created</th>
-        <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDateCreated()->getSeconds())); ?></td>
-    </tr>
-    <tr>
-        <th>Date Paid</th>
-        <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDatePaid()->getSeconds())); ?></td>
-    </tr>
+   <tbody>
+   <!-- Basic Details -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Basic Details</th></tr>
+   <tr>
+       <th>Payment ID</th>
+       <td><?php echo htmlspecialchars($details->getPaymentId()); ?></td>
+   </tr>
+   <tr>
+       <th>Status</th>
+       <td><?php echo htmlspecialchars($functions->getStatusText($details->getStatus())); ?></td>
+   </tr>
+   <tr>
+       <th>Date Created</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDateCreated()->getSeconds())); ?></td>
+   </tr>
+   <tr>
+       <th>Date Paid</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDatePaid()->getSeconds())); ?></td>
+   </tr>
 
-    <!-- Payment Data -->
-    <tr>
-        <th>PSP Reference</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getPspReference()); ?></td>
-    </tr>
-    <tr>
-        <th>Payment Method</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentMethodVariant()); ?></td>
-    </tr>
-    <tr>
-        <th>Auth Status</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getAuthStatus()); ?></td>
-    </tr>
-    <tr>
-        <th>Auth Status Date</th>
-        <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getPaymentData()->getAuthStatusDate()->getSeconds())); ?></td>
-    </tr>
+   <!-- Payment Data -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Data</th></tr>
+   <tr>
+       <th>PSP Reference</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPspReference()); ?></td>
+   </tr>
+   <tr>
+       <th>Payment Method Variant</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentMethodVariant()); ?></td>
+   </tr>
+   <tr>
+       <th>Auth Status</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getAuthStatus()); ?></td>
+   </tr>
+   <tr>
+       <th>Auth Status Date</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getPaymentData()->getAuthStatusDate()->getSeconds())); ?></td>
+   </tr>
 
-    <!-- Payment Card/Wallet -->
-    <?php if ($details->getPaymentData()->hasPaymentCard()): ?>
-    <tr>
-        <th>Card Last 4 Digits</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentCard()->getCardLast4Digits()); ?></td>
-    </tr>
-    <?php endif; ?>
-    <?php if ($details->getPaymentData()->hasPaymentWallet()): ?>
-    <tr>
-        <th>Payment Link ID</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getPaymentLinkId()); ?></td>
-    </tr>
-    <tr>
-        <th>Wallet Card Last 4 Digits</th>
-        <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getCardLast4Digits()); ?></td>
-    </tr>
-    <?php endif; ?>
+   <!-- Payment Card/Wallet -->
+   <?php if ($details->getPaymentData()->hasPaymentCard()): ?>
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Card</th></tr>
+   <tr>
+       <th>Card Last 4 Digits</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentCard()->getCardLast4Digits()); ?></td>
+   </tr>
+   <?php endif; ?>
+   <?php if ($details->getPaymentData()->hasPaymentWallet()): ?>
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Wallet</th></tr>
+   <tr>
+       <th>Payment Link ID</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getPaymentLinkId()); ?></td>
+   </tr>
+   <tr>
+       <th>Wallet Card Last 4 Digits</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getCardLast4Digits()); ?></td>
+   </tr>
+   <?php endif; ?>
 
-    <!-- Sale Data -->
-    <tr>
-        <th>Order ID</th>
-        <td><?php echo htmlspecialchars($details->getSaleData()->getOrderId()); ?></td>
-    </tr>
-    <tr>
-        <th>Payment Reference</th>
-        <td><?php echo htmlspecialchars($details->getSaleData()->getPaymentReference()); ?></td>
-    </tr>
-    <tr>
-        <th>Amount</th>
-        <td><?php
-            $amount = $details->getSaleData()->getAmountMinorUnits();
-            $currency = $details->getSaleData()->getCurrency();
-            echo htmlspecialchars($functions->formatAmount($amount, $currency));
-        ?></td>
-    </tr>
-    <?php if ($details->getSaleData()->getOrderMetadata()): ?>
-    <tr>
-        <th>Order Metadata</th>
-        <td><?php echo htmlspecialchars($details->getSaleData()->getOrderMetadata()); ?></td>
-    </tr>
-    <?php endif; ?>
-    </tbody>
+   <!-- Sale Data -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Sale Data</th></tr>
+   <tr>
+       <th>Order ID</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getOrderId()); ?></td>
+   </tr>
+   <tr>
+       <th>Payment Reference</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getPaymentReference()); ?></td>
+   </tr>
+   <tr>
+       <th>Amount</th>
+       <td><?php 
+           $amount = $details->getSaleData()->getAmountMinorUnits();
+           $currency = $details->getSaleData()->getCurrency();
+           echo htmlspecialchars($functions->formatAmount($amount, $currency)); 
+       ?></td>
+   </tr>
+   <?php if ($details->getSaleData()->getOrderMetadata()): ?>
+   <tr>
+       <th>Order Metadata</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getOrderMetadata()); ?></td>
+   </tr>
+   <?php endif; ?>
+   </tbody>
 </table>
 
 <!-- Refund Form -->

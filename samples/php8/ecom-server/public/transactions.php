@@ -1,21 +1,10 @@
 <?php
 $config = require __DIR__ . '/config.php';
-
+$functions = require_once __DIR__ . '/functions.php';
 
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
 use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest;
 use Grpc\ChannelCredentials;
-
-function getStatusText($statusCode) {
-    $statuses = [
-        0 => 'PENDING',
-        1 => 'SUCCESS',
-        2 => 'FAILED',
-        3 => 'CANCELLED',
-        4 => 'EXPIRED'
-    ];
-    return $statuses[$statusCode] ?? 'UNKNOWN';
-}
 
 // Get current page from query parameter
 $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
@@ -201,10 +190,8 @@ try {
                     <th>Reference</th>
                     <th>Order ID</th>
                     <th>Status</th>
-                    <!-- <th>Payment Method</th> -->
                     <th>Created Date</th>
                     <th>Paid Date</th>
-                    <!-- <th>PSP Reference</th> -->
                     <th>Refund</th>
                 </tr>
             </thead>
@@ -214,21 +201,15 @@ try {
                         <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
                         <td><?php echo htmlspecialchars($payment['payment_reference']); ?></td>
                         <td><?php echo htmlspecialchars($payment['order_id']); ?></td>
-                        <td class="status-<?php echo htmlspecialchars(getStatusText($payment['status'])); ?>">
-                            <?php echo htmlspecialchars(getStatusText($payment['status'])); ?>
+                        <td class="status-<?php echo htmlspecialchars($functions->getStatusText($payment['status'])); ?>">
+                            <?php echo htmlspecialchars($functions->getStatusText($payment['status'])); ?>
                         </td>
-                        <!-- <td><?php echo $payment['payment_method'] ?: 'N/A'; ?></td> -->
                         <td><?php echo isset($payment['date_created']) ? htmlspecialchars($payment['date_created']) : 'N/A'; ?></td>
                         <td><?php echo isset($payment['date_paid']) ? htmlspecialchars($payment['date_paid']) : 'N/A'; ?></td>
-                        <!-- <td><?php echo $payment['psp_reference'] ?: 'N/A'; ?></td> -->
                         <td>
-                            <?php if (getStatusText($payment['status']) === 'SUCCESS'): ?>
+                            <?php if ($functions->getStatusText($payment['status']) === 'SUCCESS'): ?>
                                 <form action="refund-form.php" method="GET">
                                     <input type="hidden" name="payment_id" value="<?php echo htmlspecialchars($payment['payment_id']); ?>">
-                                    <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($payment['order_id']); ?>">
-                                    <input type="hidden" name="status" value="<?php echo htmlspecialchars(getStatusText($payment['status'])); ?>">
-                                    <input type="hidden" name="date_created" value="<?php echo htmlspecialchars($payment['date_created'] ?? 'N/A'); ?>">
-                                    <input type="hidden" name="date_paid" value="<?php echo htmlspecialchars($payment['date_paid'] ?? 'N/A'); ?>">
                                     <button type="submit" class="refund-btn">Refund</button>
                                 </form>
                             <?php endif; ?>

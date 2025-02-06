@@ -1,32 +1,42 @@
 <?php
 $config = require __DIR__ . '/config.php';
+$functions =require_once __DIR__ . '/functions.php';
 
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\PaymentDetailsRequest;
 use Com\Kodypay\Grpc\Ecom\V1\RefundRequest;
 use Grpc\ChannelCredentials;
 
 header("Content-Type: text/html");
 
-$refundStatusMapping = [
-    0 => 'UNKNOWN',
-    1 => 'REQUESTED',
-    2 => 'SUCCESS',
-    3 => 'FAILED',
-    4 => 'PARTIAL_SUCCESS',
-];
-
 try {
     // Check if data is passed through GET request
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        if (!isset($_GET['payment_id'], $_GET['order_id'], $_GET['status'], $_GET['date_created'], $_GET['date_paid'])) {
+        if (!isset($_GET['payment_id'])) {
             throw new Exception("Invalid access: Required payment details are missing.");
         }
 
         $paymentId = $_GET['payment_id'];
-        $orderId = $_GET['order_id'];
-        $status = $_GET['status'];
-        $dateCreated = $_GET['date_created'];
-        $datePaid = $_GET['date_paid'];
+
+        // Get payment details via gRPC
+        $client = new KodyEcomPaymentsServiceClient(
+            $config['hostname'],
+            ['credentials' => ChannelCredentials::createSsl()]
+        );
+        $metadata = ['X-API-Key' => [$config['api_key']]];
+
+        $request = new PaymentDetailsRequest();
+        $request->setStoreId($config['store_id']);
+        $request->setPaymentId($paymentId);
+
+        $call = $client->PaymentDetails($request, $metadata);
+        list($details, $status) = $call->wait();
+
+        if ($status->code !== \Grpc\STATUS_OK) {
+            throw new Exception("gRPC call failed: " . $status->details);
+        }
+
+        $details = $details->getResponse();
     }
 
     // Process refund form submission
@@ -56,9 +66,7 @@ try {
         foreach ($call->responses() as $response) {
             $refunds[] = [
                 'status' => $response->getStatus(),
-                'status_text' => isset($refundStatusMapping[$response->getStatus()])
-                    ? $refundStatusMapping[$response->getStatus()]
-                    : 'UNKNOWN',
+                'status_text' => $functions->getRefundStatusText($response->getStatus()),
                 'payment_id' => $response->getPaymentId(),
                 'payment_transaction_id' => $response->getpaymentTransactionId(),
                 'date_created' => date('Y-m-d H:i:s', $response->getDateCreated()->getSeconds()),
@@ -237,32 +245,94 @@ try {
 
 <!-- Payment Details Table -->
 <table>
-    <tbody>
-    <tr>
-        <th>Payment ID</th>
-        <td><?php echo htmlspecialchars($paymentId); ?></td>
-    </tr>
-    <tr>
-        <th>Order ID</th>
-        <td><?php echo htmlspecialchars($orderId); ?></td>
-    </tr>
-    <tr>
-        <th>Status</th>
-        <td><?php echo htmlspecialchars($status); ?></td>
-    </tr>
-    <tr>
-        <th>Date Created</th>
-        <td><?php echo htmlspecialchars($dateCreated); ?></td>
-    </tr>
-    <tr>
-        <th>Date Paid</th>
-        <td><?php echo htmlspecialchars($datePaid); ?></td>
-    </tr>
-    </tbody>
+   <tbody>
+   <!-- Basic Details -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Basic Details</th></tr>
+   <tr>
+       <th>Payment ID</th>
+       <td><?php echo htmlspecialchars($details->getPaymentId()); ?></td>
+   </tr>
+   <tr>
+       <th>Status</th>
+       <td><?php echo htmlspecialchars($functions->getStatusText($details->getStatus())); ?></td>
+   </tr>
+   <tr>
+       <th>Date Created</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDateCreated()->getSeconds())); ?></td>
+   </tr>
+   <tr>
+       <th>Date Paid</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getDatePaid()->getSeconds())); ?></td>
+   </tr>
+
+   <!-- Payment Data -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Data</th></tr>
+   <tr>
+       <th>PSP Reference</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPspReference()); ?></td>
+   </tr>
+   <tr>
+       <th>Payment Method Variant</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentMethodVariant()); ?></td>
+   </tr>
+   <tr>
+       <th>Auth Status</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getAuthStatus()); ?></td>
+   </tr>
+   <tr>
+       <th>Auth Status Date</th>
+       <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', $details->getPaymentData()->getAuthStatusDate()->getSeconds())); ?></td>
+   </tr>
+
+   <!-- Payment Card/Wallet -->
+   <?php if ($details->getPaymentData()->hasPaymentCard()): ?>
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Card</th></tr>
+   <tr>
+       <th>Card Last 4 Digits</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentCard()->getCardLast4Digits()); ?></td>
+   </tr>
+   <?php endif; ?>
+   <?php if ($details->getPaymentData()->hasPaymentWallet()): ?>
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Payment Wallet</th></tr>
+   <tr>
+       <th>Payment Link ID</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getPaymentLinkId()); ?></td>
+   </tr>
+   <tr>
+       <th>Wallet Card Last 4 Digits</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentWallet()->getCardLast4Digits()); ?></td>
+   </tr>
+   <?php endif; ?>
+
+   <!-- Sale Data -->
+   <tr><th colspan="2" style="background-color: #e0e0e0;">Sale Data</th></tr>
+   <tr>
+       <th>Order ID</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getOrderId()); ?></td>
+   </tr>
+   <tr>
+       <th>Payment Reference</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getPaymentReference()); ?></td>
+   </tr>
+   <tr>
+       <th>Amount</th>
+       <td><?php 
+           $amount = $details->getSaleData()->getAmountMinorUnits();
+           $currency = $details->getSaleData()->getCurrency();
+           echo htmlspecialchars($functions->formatAmount($amount, $currency)); 
+       ?></td>
+   </tr>
+   <?php if ($details->getSaleData()->getOrderMetadata()): ?>
+   <tr>
+       <th>Order Metadata</th>
+       <td><?php echo htmlspecialchars($details->getSaleData()->getOrderMetadata()); ?></td>
+   </tr>
+   <?php endif; ?>
+   </tbody>
 </table>
 
 <!-- Refund Form -->
-<?php if ($status === 'SUCCESS'): ?>
+<?php if ($functions->getStatusText($details->getStatus()) === 'SUCCESS'): ?>
     <form method="POST">
         <input type="hidden" name="payment_id" value="<?php echo htmlspecialchars($paymentId); ?>">
         <label for="refund-amount">Refund Amount:</label>

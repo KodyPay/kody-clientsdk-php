@@ -270,10 +270,6 @@ try {
     </tr>
     <tr>
         <th>Payment Method</th>
-        <td><?php echo htmlspecialchars($functions->getPaymentMethodText($details->getPaymentData()->getPaymentMethod())); ?></td>
-    </tr>
-    <tr>
-        <th>Payment Method Variant</th>
         <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentMethodVariant()); ?></td>
     </tr>
     <tr>

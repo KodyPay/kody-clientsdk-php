@@ -34,10 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $req->setTerminalId($_POST['terminal_id']);
     $req->setShowTips((isset($_POST['show_tips'])) ? $_POST['show_tips'] : false);
 
-    if (isset($_POST['enable_payment_method'])) {
+    if (isset($_POST['payment_method_type']) or isset($_POST['activate_qr_code_scanner'])) {
         $paymentMethod = new PaymentMethod();
 
-        $paymentMethod->setPaymentMethodType(PaymentMethodType::value($_POST['payment_method_type']));
+        if (isset($_POST['payment_method_type'])) {
+            $paymentMethod->setPaymentMethodType(PaymentMethodType::value($_POST['payment_method_type']));
+        }
 
         if (isset($_POST['activate_qr_code_scanner'])) {
             $paymentMethod->setActivateQrCodeScanner($_POST['activate_qr_code_scanner']);
@@ -51,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
             return constant(PaymentMethods::class . '::' . $method);
         }, $_POST['accepts_only']);
         $req->setAcceptsOnly($acceptsOnly);
-     }
+    }
 
     error_log("Sending request");
     $timeoutDateTime = (new DateTime())->add(new DateInterval('PT' . (3 * 60) . 'S'));

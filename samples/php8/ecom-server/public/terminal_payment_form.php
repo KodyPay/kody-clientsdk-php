@@ -83,8 +83,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" step="0.01" required>
 
     <label for="currency">Currency:</label>
-    <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly"
-           readonly>
+    <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly" readonly>
 
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
@@ -97,15 +96,11 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
         <input type="checkbox" id="show_tips" name="show_tips">
     </div>
 
-    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
-        <label for="enable_payment_method">Enable payment method: </label>
-        <input type="checkbox" id="enable_payment_method" name="enable_payment_method" onchange="valueChanged()">
-    </div>
-
-    <div id="payment_method_fields" style="display: none; margin-bottom: 20px;
-    padding: 20px; border: 1px solid #ccc; border-radius: 4px">
+    <label>Payment Method Control:</label>
+    <div id="payment_method_fields" style="margin-bottom: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 4px">
         <label for="payment_method_type">Payment method type:</label>
         <select id="payment_method_type" name="payment_method_type">
+            <option value="">------</option>
             <option value="CARD">Card</option>
             <option value="E_WALLET">E-Wallet</option>
         </select>
@@ -117,7 +112,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     </div>
 
     <div id="accepts_only_section" style="margin-bottom: 20px;">
-        <label>Accepts Only (select multiple):</label>
+        <label>Accepts Only (press ⌘ / ctrl and click to select multiple):</label>
         <select id="accepts_only" name="accepts_only[]" multiple style="width: 100%; height: 200px;">
             <option value="VISA">Visa</option>
             <option value="MASTERCARD">Mastercard</option>
@@ -139,19 +134,11 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
 </form>
 
 <script type="text/javascript">
-    function valueChanged() {
-        if (document.getElementById('enable_payment_method').checked) {
-            document.getElementById("payment_method_fields").style.display = 'block';
-        } else {
-            document.getElementById("payment_method_fields").style.display = 'none';
-        }
-    }
-
     // Disable the QR code scanner checkbox if the payment method type is CARD
     document.getElementById('payment_method_type').addEventListener('change', function() {
         const qrScannerCheckbox = document.getElementById('activate_qr_code_scanner');
-        qrScannerCheckbox.disabled = this.value === 'CARD';
-        if (this.value === 'CARD') {
+        qrScannerCheckbox.disabled = this.value !== 'E_WALLET';
+        if (this.value !== 'E_WALLET') {
             qrScannerCheckbox.checked = false;
         }
     });
@@ -173,7 +160,7 @@ if (isset($_GET['error'])) {
    <li><strong>Payment Method Control:</strong>
        <ul>
            <li>Enable specific payment flows (Card or E-Wallet)</li>
-           <li>QR scanner activation for E-Wallet payments</li>
+           <li>QR scanner activation for E-Wallet payments (disabled if Card is selected)</li>
        </ul>
    </li>
    <li><strong>Accepts Only:</strong> Multi-select payment method filter

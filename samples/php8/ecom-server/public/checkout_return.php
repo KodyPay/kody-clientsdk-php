@@ -4,114 +4,126 @@ use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
 use Com\Kodypay\Grpc\Ecom\V1\PaymentDetailsRequest;
 use Grpc\ChannelCredentials;
 
-function paymentStatus(): void
+$config = require __DIR__ . '/config.php';
+$functions = require_once __DIR__ . '/functions.php';
+
+/**
+ * Retrieve payment details using PaymentDetailsRequest.
+ *
+ * This function uses the provided payment reference and returns an array
+ * of payment details.
+ *
+ * @param string $paymentReference The payment reference to query.
+ * @return array An associative array with payment details on success, or error information.
+ */
+function getPaymentDetails(string $paymentReference): array
 {
-    if (isset($_GET['paymentReference'])) {
-        $paymentReference = $_GET['paymentReference'];
-        error_log("Making request paymentReference: " . $paymentReference);
+    global $config;
+    global $functions;
 
-        $config = require __DIR__ . '/config.php';
+    $result = [];
 
-        $client = new KodyEcomPaymentsServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
-        $metadata = ['X-API-Key' => [$config['api_key']]];
+    error_log("Making request for paymentReference: " . $paymentReference);
 
-        $request = new PaymentDetailsRequest();
-        $request->setStoreId($config['store_id']);
-        $request->setPaymentReference($paymentReference);
+    // Create the gRPC client
+    $client = new KodyEcomPaymentsServiceClient(
+        $config['hostname'],
+        ['credentials' => ChannelCredentials::createSsl()]
+    );
+    $metadata = ['X-API-Key' => [$config['api_key']]];
 
-        list($response, $status) = $client->PaymentDetails($request, $metadata)->wait();
-        error_log("Status Code: " . $status->code);
-        error_log("Status Details: " . $status->details);
+    // Build the PaymentDetailsRequest message
+    $request = new PaymentDetailsRequest();
+    $request->setStoreId($config['store_id']);
+    $request->setPaymentReference($paymentReference);
 
-        if ($status->code === 0) { // Check for success
-            if ($response->hasResponse()) {
-                $responseData = $response->getResponse();
+    // Make the gRPC call
+    list($response, $grpcStatus) = $client->PaymentDetails($request, $metadata)->wait();
+    error_log("gRPC Status Code: " . $grpcStatus->code);
+    error_log("gRPC Status Details: " . $grpcStatus->details);
 
-                // Access fields within the `Response` message using getters
-                $paymentId = $responseData->getPaymentId() ?? null;
-                $paymentReference = $responseData->getPaymentReference() ?? null;
-                $orderId = $responseData->getOrderId() ?? null;
-                $status = $responseData->getStatus() ?? null; // status is an enum, can be converted if needed
-
-                // Handle Timestamp fields for dateCreated and datePaid
-                $dateCreated = $responseData->getDateCreated()
-                    ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
-                    : null;
-                $datePaid = $responseData->getDatePaid()
-                    ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
-                    : null;
-
-                echo json_encode([
-                    'paymentId' => $paymentId,
-                    'paymentReference' => $paymentReference,
-                    'orderId' => $orderId,
-                    'status' => $status,
-                    'dateCreated' => $dateCreated,
-                    'datePaid' => $datePaid,
-                ]);
-            } elseif ($response->hasError()) {
-                $errorData = $response->getError();
-
-                // Access fields within the `Error` message using getters
-                $errorType = $errorData->getType() ?? null;
-                $errorMessage = $errorData->getMessage() ?? null;
-
-                echo json_encode([
-                    'errorType' => $errorType,
-                    'errorMessage' => $errorMessage,
-                ]);
-            } else {
-                error_log("No valid result found in response.");
-            }
-        } else {
-            error_log("No data");
-        }
-    } else {
-        error_log("No payment reference");
+    // If the gRPC call did not succeed, return an error.
+    if ($grpcStatus->code !== 0) {
+        $result['error'] = 'gRPC call failed with status code ' . $grpcStatus->code;
+        $result['details'] = $grpcStatus->details;
+        return $result;
     }
+
+    // Process the response message
+    if ($response->hasResponse()) {
+        $responseData = $response->getResponse();
+        // getStatus() returns a numeric status.
+        $rawStatus = $responseData->getStatus() ?? null;
+        // Map the numeric status using the helper function and convert to lowercase.
+        $mappedStatus = strtolower($functions->getStatusText($rawStatus));
+        $result = [
+            'success'          => true,
+            'paymentId'        => $responseData->getPaymentId() ?? null,
+            'paymentReference' => $responseData->getPaymentReference() ?? null,
+            'orderId'          => $responseData->getOrderId() ?? null,
+            'status'           => $mappedStatus,
+            'rawStatus'        => $rawStatus,
+            'dateCreated'      => $responseData->getDateCreated()
+                ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
+                : null,
+            'datePaid'         => $responseData->getDatePaid()
+                ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
+                : null,
+        ];
+    } elseif ($response->hasError()) {
+        $errorData = $response->getError();
+        $result['errorType'] = $errorData->getType() ?? null;
+        $result['errorMessage'] = $errorData->getMessage() ?? null;
+    } else {
+        error_log("No valid result found in response.");
+        $result['error'] = 'No valid result found in response.';
+    }
+    return $result;
 }
 
-// Check if the 'status' query parameter is set
-if (isset($_GET['status'])) {
-    // Get the value of the 'status' query parameter
-    $result = $_GET['status'];
+// --- MAIN LOGIC ---
 
-    // Define the possible payment outcomes
-    $paymentOutcomes = ['success', 'failure', 'expired', 'error'];
+$message = "";
+$class = "";
 
-    // Check if the result is a valid payment outcome
-    if (in_array($result, $paymentOutcomes)) {
-        switch ($result) {
-            case 'success':
-                $message = "Payment was successful!";
-                $class = "success";
-                break;
-            case 'failure':
-                $message = "Payment failed. Please try again.";
-                $class = "failure";
-                break;
-            case 'expired':
-                $message = "Payment session has expired. Please start again.";
-                $class = "expired";
-                break;
-            case 'error':
-                $message = "An error occurred during payment. Please contact support.";
-                $class = "error";
-                break;
-            default:
-                $message = "Unknown payment result.";
-                $class = "unknown";
-                break;
-        }
-        error_log("Checking status");
-        paymentStatus();
-    } else {
-        $message = "Invalid payment result.";
-        $class = "invalid";
+try {
+    // Optionally, get an expected status from GET (e.g. "success", "failed", etc.)
+    $expectedStatus = isset($_GET['status']) ? strtolower($_GET['status']) : "";
+
+    if (!isset($_GET['paymentReference'])) {
+        throw new Exception("Missing payment reference.");
     }
-} else {
-    $message = "No payment result provided.";
-    $class = "no-result";
+    $paymentReference = $_GET['paymentReference'];
+
+    // Retrieve payment details (PaymentDetails is the source of truth).
+    $resultData = getPaymentDetails($paymentReference);
+
+    if (isset($resultData['error'])) {
+        $message = "Something went wrong: " . $resultData['error'];
+        $class = "error";
+    } else {
+        // Actual status from PaymentDetails.
+        $actualStatus = $resultData['status'] ?? 'unknown';
+
+        // Optional validation: If an expected status is provided and does not match actual status, throw an exception.
+        if ($expectedStatus !== "" && $expectedStatus !== $actualStatus) {
+            throw new Exception(
+                "Expected status ($expectedStatus) does not match actual payment status ($actualStatus)."
+            );
+        }
+
+        // Determine message based on actual status.
+        if ($actualStatus === 'success') {
+            $message = "Payment was successful!";
+            $class = "success";
+        } else {
+            $message = "Payment status: " . ucfirst($actualStatus);
+            $class = "error";
+        }
+    }
+} catch (Exception $e) {
+    $message = "Exception: " . $e->getMessage();
+    $class = "error";
 }
 ?>
 <!DOCTYPE html>
@@ -149,7 +161,7 @@ if (isset($_GET['status'])) {
 </head>
 <body>
 <div class="message <?php echo $class; ?>">
-    <?php echo $message; ?>
+    <?php echo htmlspecialchars($message); ?>
 </div>
 <div class="links">
     <a href="checkout.php">New online payment</a> | <a href="index.php">Main menu</a>

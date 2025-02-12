@@ -100,7 +100,6 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
     <div id="payment_method_fields" style="margin-bottom: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 4px">
         <label for="payment_method_type">Payment method type:</label>
         <select id="payment_method_type" name="payment_method_type">
-            <option value="">------</option>
             <option value="CARD">Card</option>
             <option value="E_WALLET">E-Wallet</option>
         </select>

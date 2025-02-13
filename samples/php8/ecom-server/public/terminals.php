@@ -30,7 +30,6 @@
     <script>
         function fetchTerminals() {
             const tableBody = document.getElementById('terminals-body');
-            tableBody.innerHTML = '<tr id="loading"><td colspan="3">Loading...</td></tr>';
 
             fetch('api/terminals.php')
                 .then(response => {

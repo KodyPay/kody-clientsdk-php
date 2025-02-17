@@ -122,7 +122,7 @@ try {
 
         if (empty($refunds)) {
             // Display refund error if no refunds are found
-            echo "<p style='font-weight: bold;'>Refund Error: No refund data available.</p>";
+            echo "<p style='font-weight: bold;'>Refund Error: Exceeded the maximum refund amount.</p>";
         } else {
             // Display refund details in a consistent table format
             foreach ($refunds as $refund) {
@@ -164,6 +164,7 @@ try {
                 echo "</table><br>";
             }
         }
+        echo "<a href='/refund-form.php?payment_id=" . $paymentId . "'>Back to Refund Form</a> | <a href='/transactions.php'>Back to Transactions</a>";
         echo "</body>";
         echo "</html>";
         exit;
@@ -290,6 +291,10 @@ try {
    <tr>
        <th>Card Last 4 Digits</th>
        <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentCard()->getCardLast4Digits()); ?></td>
+   </tr>
+   <tr>
+       <th>Card Auth Code</th>
+       <td><?php echo htmlspecialchars($details->getPaymentData()->getPaymentCard()->getAuthCode()); ?></td>
    </tr>
    <?php endif; ?>
    <?php if ($details->getPaymentData()->hasPaymentWallet()): ?>

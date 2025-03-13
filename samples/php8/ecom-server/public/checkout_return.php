@@ -8,76 +8,98 @@ $config = require __DIR__ . '/config.php';
 $functions = require_once __DIR__ . '/functions.php';
 
 /**
- * Retrieve payment details using PaymentDetailsRequest.
- *
- * This function uses the provided payment reference and returns an array
- * of payment details.
- *
- * @param string $paymentReference The payment reference to query.
- * @return array An associative array with payment details on success, or error information.
- */
-function getPaymentDetails(string $paymentReference): array
+* Retrieve payment details with retry mechanism.
+*
+* Makes multiple attempts to fetch payment details before giving up,
+* helping to overcome temporary network or service issues.
+*
+* @param string $paymentReference The payment reference to query
+* @param int $maxRetries Maximum number of retry attempts (default: 3)
+* @return array An associative array with payment details on success, or error information
+*/
+// Modify getPaymentDetails to handle retries
+function getPaymentDetails(string $paymentReference, int $maxRetries = 3): array
 {
     global $config;
     global $functions;
-
+    
+    $attempt = 0;
     $result = [];
+    
+    while ($attempt < $maxRetries) {
+        $attempt++;
+        error_log("Attempt {$attempt} for paymentReference: " . $paymentReference);
+        
+        try {
+            // Create the gRPC client
+            $client = new KodyEcomPaymentsServiceClient(
+                $config['hostname'],
+                ['credentials' => ChannelCredentials::createSsl()]
+            );
+            $metadata = ['X-API-Key' => [$config['api_key']]];
+            
+            // Build the PaymentDetailsRequest message
+            $request = new PaymentDetailsRequest();
+            $request->setStoreId($config['store_id']);
+            $request->setPaymentReference($paymentReference);
+            
+            // Make the gRPC call
+            list($response, $grpcStatus) = $client->PaymentDetails($request, $metadata)->wait();
+            error_log("gRPC Status Code: " . $grpcStatus->code);
+            error_log("gRPC Status Details: " . $grpcStatus->details);
+            
+            // If the gRPC call succeeded, process the response
+            if ($grpcStatus->code === 0) {
+                // Process the response message
+                if ($response->hasResponse()) {
+                    $responseData = $response->getResponse();
+                    $rawStatus = $responseData->getStatus() ?? null;
+                    $mappedStatus = strtolower($functions->getStatusText($rawStatus));
+                    return [
+                        'success'          => true,
+                        'paymentId'        => $responseData->getPaymentId() ?? null,
+                        'paymentReference' => $responseData->getPaymentReference() ?? null,
+                        'orderId'          => $responseData->getOrderId() ?? null,
+                        'status'           => $mappedStatus,
+                        'rawStatus'        => $rawStatus,
+                        'dateCreated'      => $responseData->getDateCreated()
+                            ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
+                            : null,
+                        'datePaid'         => $responseData->getDatePaid()
+                            ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
+                            : null,
+                    ];
+                } elseif ($response->hasError()) {
+                    $errorData = $response->getError();
+                    return [
+                        'errorType' => $errorData->getType() ?? null,
+                        'errorMessage' => $errorData->getMessage() ?? null
+                    ];
+                } else {
+                    error_log("No valid result found in response.");
+                    // Will retry if we haven't exceeded max attempts
+                }
+            }
+            
+            if ($attempt >= $maxRetries) {
+                // Final attempt failed, return error
+                $result['error'] = 'gRPC call failed after ' . $maxRetries . ' attempts. Last status: ' . $grpcStatus->code;
+                $result['details'] = $grpcStatus->details;
+            } else {
+                usleep(1000000); // 1s delay between retries
+            }
+            
+        } catch (Exception $e) {
+            error_log("Exception on attempt {$attempt}: " . $e->getMessage());
+            if ($attempt >= $maxRetries) {
+                $result['error'] = 'Exception after ' . $maxRetries . ' attempts: ' . $e->getMessage();
+                return $result;
+            }
 
-    error_log("Making request for paymentReference: " . $paymentReference);
-
-    // Create the gRPC client
-    $client = new KodyEcomPaymentsServiceClient(
-        $config['hostname'],
-        ['credentials' => ChannelCredentials::createSsl()]
-    );
-    $metadata = ['X-API-Key' => [$config['api_key']]];
-
-    // Build the PaymentDetailsRequest message
-    $request = new PaymentDetailsRequest();
-    $request->setStoreId($config['store_id']);
-    $request->setPaymentReference($paymentReference);
-
-    // Make the gRPC call
-    list($response, $grpcStatus) = $client->PaymentDetails($request, $metadata)->wait();
-    error_log("gRPC Status Code: " . $grpcStatus->code);
-    error_log("gRPC Status Details: " . $grpcStatus->details);
-
-    // If the gRPC call did not succeed, return an error.
-    if ($grpcStatus->code !== 0) {
-        $result['error'] = 'gRPC call failed with status code ' . $grpcStatus->code;
-        $result['details'] = $grpcStatus->details;
-        return $result;
+            usleep(1000000);
+        }
     }
-
-    // Process the response message
-    if ($response->hasResponse()) {
-        $responseData = $response->getResponse();
-        // getStatus() returns a numeric status.
-        $rawStatus = $responseData->getStatus() ?? null;
-        // Map the numeric status using the helper function and convert to lowercase.
-        $mappedStatus = strtolower($functions->getStatusText($rawStatus));
-        $result = [
-            'success'          => true,
-            'paymentId'        => $responseData->getPaymentId() ?? null,
-            'paymentReference' => $responseData->getPaymentReference() ?? null,
-            'orderId'          => $responseData->getOrderId() ?? null,
-            'status'           => $mappedStatus,
-            'rawStatus'        => $rawStatus,
-            'dateCreated'      => $responseData->getDateCreated()
-                ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
-                : null,
-            'datePaid'         => $responseData->getDatePaid()
-                ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
-                : null,
-        ];
-    } elseif ($response->hasError()) {
-        $errorData = $response->getError();
-        $result['errorType'] = $errorData->getType() ?? null;
-        $result['errorMessage'] = $errorData->getMessage() ?? null;
-    } else {
-        error_log("No valid result found in response.");
-        $result['error'] = 'No valid result found in response.';
-    }
+    
     return $result;
 }
 

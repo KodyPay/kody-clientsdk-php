@@ -1,128 +1,10 @@
 <?php
 
-use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
-use Com\Kodypay\Grpc\Ecom\V1\PaymentDetailsRequest;
-use Grpc\ChannelCredentials;
+$expectedStatus = isset($_GET['status']) ? strtolower($_GET['status']) : "";
+$paymentReference = isset($_GET['paymentReference']) ? $_GET['paymentReference'] : "";
 
-$config = require __DIR__ . '/config.php';
-$functions = require_once __DIR__ . '/functions.php';
-
-/**
- * Retrieve payment details using PaymentDetailsRequest.
- *
- * This function uses the provided payment reference and returns an array
- * of payment details.
- *
- * @param string $paymentReference The payment reference to query.
- * @return array An associative array with payment details on success, or error information.
- */
-function getPaymentDetails(string $paymentReference): array
-{
-    global $config;
-    global $functions;
-
-    $result = [];
-
-    error_log("Making request for paymentReference: " . $paymentReference);
-
-    // Create the gRPC client
-    $client = new KodyEcomPaymentsServiceClient(
-        $config['hostname'],
-        ['credentials' => ChannelCredentials::createSsl()]
-    );
-    $metadata = ['X-API-Key' => [$config['api_key']]];
-
-    // Build the PaymentDetailsRequest message
-    $request = new PaymentDetailsRequest();
-    $request->setStoreId($config['store_id']);
-    $request->setPaymentReference($paymentReference);
-
-    // Make the gRPC call
-    list($response, $grpcStatus) = $client->PaymentDetails($request, $metadata)->wait();
-    error_log("gRPC Status Code: " . $grpcStatus->code);
-    error_log("gRPC Status Details: " . $grpcStatus->details);
-
-    // If the gRPC call did not succeed, return an error.
-    if ($grpcStatus->code !== 0) {
-        $result['error'] = 'gRPC call failed with status code ' . $grpcStatus->code;
-        $result['details'] = $grpcStatus->details;
-        return $result;
-    }
-
-    // Process the response message
-    if ($response->hasResponse()) {
-        $responseData = $response->getResponse();
-        // getStatus() returns a numeric status.
-        $rawStatus = $responseData->getStatus() ?? null;
-        // Map the numeric status using the helper function and convert to lowercase.
-        $mappedStatus = strtolower($functions->getStatusText($rawStatus));
-        $result = [
-            'success'          => true,
-            'paymentId'        => $responseData->getPaymentId() ?? null,
-            'paymentReference' => $responseData->getPaymentReference() ?? null,
-            'orderId'          => $responseData->getOrderId() ?? null,
-            'status'           => $mappedStatus,
-            'rawStatus'        => $rawStatus,
-            'dateCreated'      => $responseData->getDateCreated()
-                ? $responseData->getDateCreated()->toDateTime()->format('Y-m-d H:i:s')
-                : null,
-            'datePaid'         => $responseData->getDatePaid()
-                ? $responseData->getDatePaid()->toDateTime()->format('Y-m-d H:i:s')
-                : null,
-        ];
-    } elseif ($response->hasError()) {
-        $errorData = $response->getError();
-        $result['errorType'] = $errorData->getType() ?? null;
-        $result['errorMessage'] = $errorData->getMessage() ?? null;
-    } else {
-        error_log("No valid result found in response.");
-        $result['error'] = 'No valid result found in response.';
-    }
-    return $result;
-}
-
-// --- MAIN LOGIC ---
-
-$message = "";
-$class = "";
-
-try {
-    // Optionally, get an expected status from GET (e.g. "success", "failed", etc.)
-    $expectedStatus = isset($_GET['status']) ? strtolower($_GET['status']) : "";
-
-    if (!isset($_GET['paymentReference'])) {
-        throw new Exception("Missing payment reference.");
-    }
-    $paymentReference = $_GET['paymentReference'];
-
-    // Retrieve payment details (PaymentDetails is the source of truth).
-    $resultData = getPaymentDetails($paymentReference);
-
-    if (isset($resultData['error'])) {
-        $message = "Something went wrong: " . $resultData['error'];
-        $class = "error";
-    } else {
-        // Actual status from PaymentDetails.
-        $actualStatus = $resultData['status'] ?? 'unknown';
-
-        // Optional validation: If an expected status is provided and does not match actual status, throw an exception.
-        if ($expectedStatus !== "" && $expectedStatus !== $actualStatus) {
-            throw new Exception(
-                "Expected status ($expectedStatus) does not match actual payment status ($actualStatus)."
-            );
-        }
-
-        // Determine message based on actual status.
-        if ($actualStatus === 'success') {
-            $message = "Payment was successful!";
-            $class = "success";
-        } else {
-            $message = "Payment status: " . ucfirst($actualStatus);
-            $class = "error";
-        }
-    }
-} catch (Exception $e) {
-    $message = "Exception: " . $e->getMessage();
+if (empty($paymentReference)) {
+    $message = "Missing payment reference.";
     $class = "error";
 }
 ?>
@@ -140,13 +22,34 @@ try {
             margin: 20px;
             text-align: center;
         }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         .success { background-color: #d4edda; color: #155724; }
-        .failure { background-color: #f8d7da; color: #721c24; }
+        .failure, .failed { background-color: #f8d7da; color: #721c24; }
         .expired { background-color: #fff3cd; color: #856404; }
         .error { background-color: #f8d7da; color: #721c24; }
         .unknown { background-color: #e2e3e5; color: #383d41; }
         .invalid { background-color: #f8d7da; color: #721c24; }
         .no-result { background-color: #e2e3e5; color: #383d41; }
+        .pending { background-color: #cce5ff; color: #004085; }
+        .cancelled { background-color: #e2e3e5; color: #383d41; }
         .links {
             text-align: center;
             margin: 20px;
@@ -157,14 +60,144 @@ try {
             text-decoration: none;
             color: #007bff;
         }
+        .details-container {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            border: 1px solid #ddd;
+            margin: 20px;
+            display: none;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details-table td, .details-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
-<div class="message <?php echo $class; ?>">
-    <?php echo htmlspecialchars($message); ?>
-</div>
+<?php if (empty($paymentReference)): ?>
+    <div class="message error">
+        <?php echo htmlspecialchars($message); ?>
+    </div>
+<?php else: ?>
+    <!-- Initial status message based on status parameter -->
+    <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
+        <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status. Verifying..."); ?>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <span>Verifying payment details...</span>
+    </div>
+
+    <!-- Payment details container (hidden initially) -->
+    <div id="payment-details" class="details-container">
+        <h3>Payment Details</h3>
+        <table class="details-table">
+            <tbody id="details-body">
+                <!-- Will be populated via JavaScript -->
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>
+
 <div class="links">
     <a href="checkout.php">New online payment</a> | <a href="index.php">Main menu</a>
 </div>
+
+<?php if (!empty($paymentReference)): ?>
+<script>
+    const RETRY_DELAY = 2000; // ms
+
+    const statusMessage = document.getElementById('status-message');
+    const loadingElement = document.getElementById('loading');
+    const detailsContainer = document.getElementById('payment-details');
+    const detailsBody = document.getElementById('details-body');
+
+    const paymentReference = "<?php echo htmlspecialchars($paymentReference); ?>";
+    const expectedStatus = "<?php echo htmlspecialchars($expectedStatus); ?>";
+
+    function updateStatus(status, isError = false) {
+        statusMessage.textContent = status;
+        statusMessage.className = "message " + (isError ? "error" : status.toLowerCase());
+    }
+
+    function displayPaymentDetails(data) {
+        const fields = [
+            { key: 'paymentId', label: 'Payment ID' },
+            { key: 'paymentReference', label: 'Payment Reference' },
+            { key: 'orderId', label: 'Order ID' },
+            { key: 'statusText', label: 'Status' },
+            { key: 'dateCreated', label: 'Date Created' },
+            { key: 'datePaid', label: 'Date Paid' }
+        ];
+
+        detailsBody.innerHTML = '';
+
+        fields.forEach(field => {
+            if (data[field.key]) {
+                const row = document.createElement('tr');
+
+                const labelCell = document.createElement('th');
+                labelCell.textContent = field.label;
+
+                const valueCell = document.createElement('td');
+                valueCell.textContent = data[field.key];
+
+                row.appendChild(labelCell);
+                row.appendChild(valueCell);
+                detailsBody.appendChild(row);
+            }
+        });
+
+        detailsContainer.style.display = 'block';
+   }
+
+    function fetchPaymentStatus() {
+        fetch(`api/payment_details.php?paymentReference=${paymentReference}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // We have valid payment details
+                    loadingElement.style.display = 'none';
+
+                    const status = data.status || 'unknown';
+
+                    if (status === 'success') {
+                        updateStatus("Payment was successful!");
+                    } else {
+                        updateStatus("Payment status: " + data.statusText);
+                    }
+
+                    // Validate against expected status - treat "error" and "failed" as equivalent
+                    if (expectedStatus && expectedStatus !== status) {
+                        // If both are error types, don't show a warning
+                        const errorTypes = ['error', 'failed', 'failure'];
+                        if (!(errorTypes.includes(expectedStatus) && errorTypes.includes(status))) {
+                            updateStatus(`Warning: Expected status (${expectedStatus}) does not match actual payment status (${status}).`, true);
+                        }
+                    }
+
+                    displayPaymentDetails(data);
+                } else {
+                    setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                }
+            })
+            .catch(error => {
+                setTimeout(fetchPaymentStatus, RETRY_DELAY);
+            });
+    }
+
+    fetchPaymentStatus();
+</script>
+<?php endif; ?>
 </body>
 </html>

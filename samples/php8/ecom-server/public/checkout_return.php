@@ -11,10 +11,10 @@ if (empty($paymentReference)) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Payment Result</title>
-   <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Result</title>
+    <style>
         .message {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -79,38 +79,38 @@ if (empty($paymentReference)) {
         .details-table tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-   </style>
+    </style>
 </head>
 <body>
 <?php if (empty($paymentReference)): ?>
-   <div class="message error">
-       <?php echo htmlspecialchars($message); ?>
-   </div>
+    <div class="message error">
+        <?php echo htmlspecialchars($message); ?>
+    </div>
 <?php else: ?>
-   <!-- Initial status message based on status parameter -->
-   <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
-       <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status. Verifying..."); ?>
-   </div>
+    <!-- Initial status message based on status parameter -->
+    <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
+        <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status. Verifying..."); ?>
+    </div>
 
-   <!-- Loading indicator -->
-   <div id="loading" class="loading">
-       <div class="spinner"></div>
-       <span>Verifying payment details...</span>
-   </div>
+    <!-- Loading indicator -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <span>Verifying payment details...</span>
+    </div>
 
-   <!-- Payment details container (hidden initially) -->
-   <div id="payment-details" class="details-container">
-       <h3>Payment Details</h3>
-       <table class="details-table">
-           <tbody id="details-body">
-               <!-- Will be populated via JavaScript -->
-           </tbody>
-       </table>
-   </div>
+    <!-- Payment details container (hidden initially) -->
+    <div id="payment-details" class="details-container">
+        <h3>Payment Details</h3>
+        <table class="details-table">
+            <tbody id="details-body">
+                <!-- Will be populated via JavaScript -->
+            </tbody>
+        </table>
+    </div>
 <?php endif; ?>
 
 <div class="links">
-   <a href="checkout.php">New online payment</a> | <a href="index.php">Main menu</a>
+    <a href="checkout.php">New online payment</a> | <a href="index.php">Main menu</a>
 </div>
 
 <?php if (!empty($paymentReference)): ?>

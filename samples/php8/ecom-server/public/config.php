@@ -15,10 +15,14 @@ foreach ($requiredEnvVars as $envVar) {
     }
 }
 
+// Use cookie values if they exist
+$storeIdFromCookie = isset($_COOKIE['store_id']) ? $_COOKIE['store_id'] : '';
+$apiKeyFromCookie = isset($_COOKIE['api_key']) ? $_COOKIE['api_key'] : '';
+
 $config = [
     'hostname' => $_ENV['KODY_HOSTNAME'] ?: 'grpc-staging.kodypay.com',
-    'store_id' => $_ENV['KODY_STORE_ID'] ?: '',
-    'api_key' => $_ENV['KODY_API_KEY'] ?: '',
+    'store_id' => $storeIdFromCookie ?: $_ENV['KODY_STORE_ID'] ?: '',
+    'api_key' => $apiKeyFromCookie ?: $_ENV['KODY_API_KEY'] ?: '',
     'currency' => $_ENV['KODY_STORE_CURRENCY'] ?: '',
     'redirect_url' => $_ENV['PAYMENT_REDIRECT_URL'] ?: '',
     'expiring_seconds' => $_ENV['PAYMENT_EXPIRING_SECONDS'] ?: 900,

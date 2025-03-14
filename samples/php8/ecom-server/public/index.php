@@ -1,5 +1,6 @@
 <?php
 $config = require __DIR__ . '/config.php';
+$defaultStoreId = $_ENV['KODY_STORE_ID'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,7 +85,7 @@ $config = require __DIR__ . '/config.php';
     </div>
     <div class="option settings">
         <h2>Settings - Staging Environment</h2>
-        <p><b>Default Store ID:</b> <?php echo htmlspecialchars($config['store_id']); ?></p>
+        <p><b>Default Store ID:</b> <?php echo htmlspecialchars($defaultStoreId); ?></p>
 
         <p><b>Note:</b> You can override the default store ID and API key by entering new values below.</p>
 

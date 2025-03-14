@@ -34,7 +34,9 @@
             fetch('api/terminals.php')
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        return response.json().then(error => {
+                            throw new Error(error.error + ': ' + error.details);
+                        });
                     }
                     return response.json();
                 })
@@ -54,7 +56,7 @@
                 })
                 .catch(error => {
                     console.error('Error fetching terminals:', error);
-                    tableBody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
+                    tableBody.innerHTML = `<tr><td colspan="3">${error.message}</td></tr>`;
                 });
         }
 

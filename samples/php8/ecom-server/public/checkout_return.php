@@ -89,7 +89,7 @@ if (empty($paymentReference)) {
 <?php else: ?>
     <!-- Initial status message based on status parameter -->
     <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
-        <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status. Verifying..."); ?>
+        <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status."); ?>
     </div>
 
     <!-- Loading indicator -->

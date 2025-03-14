@@ -125,7 +125,6 @@ function updateSettings(event) {
 
     const storeId = document.getElementById('store_id').value || "<?php echo htmlspecialchars($config['store_id']); ?>";
     const apiKey = document.getElementById('api_key').value || "";
-
     const messageDiv = document.getElementById('message');
 
     if (!storeId || !apiKey) {
@@ -134,9 +133,9 @@ function updateSettings(event) {
         return false;
     }
 
-    // Set cookies for 1 hour
-    document.cookie = "store_id=" + storeId + "; max-age=" + 3600 + "; path=/";
-    document.cookie = "api_key=" + apiKey + "; max-age=" + 3600 + "; path=/";
+    // Set cookies for 1 day
+    document.cookie = "store_id=" + encodeURIComponent(storeId) + "; max-age=86400; path=/; SameSite=Strict";
+    document.cookie = "api_key=" + encodeURIComponent(apiKey) + "; max-age=86400; path=/; SameSite=Strict";
 
     messageDiv.innerHTML = "Settings saved successfully!";
     messageDiv.style.display = "block";

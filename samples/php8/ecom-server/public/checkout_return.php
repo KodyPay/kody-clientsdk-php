@@ -1,5 +1,4 @@
 <?php
-
 $expectedStatus = isset($_GET['status']) ? strtolower($_GET['status']) : "";
 $paymentReference = isset($_GET['paymentReference']) ? $_GET['paymentReference'] : "";
 
@@ -116,6 +115,8 @@ if (empty($paymentReference)) {
 <?php if (!empty($paymentReference)): ?>
 <script>
     const RETRY_DELAY = 2000; // ms
+    const MAX_RETRIES = 30;
+    let retryCount = 0;
 
     const statusMessage = document.getElementById('status-message');
     const loadingElement = document.getElementById('loading');
@@ -166,33 +167,59 @@ if (empty($paymentReference)) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // We have valid payment details
-                    loadingElement.style.display = 'none';
-
                     const status = data.status || 'unknown';
+                    const statusText = data.statusText || '';
 
-                    if (status === 'success') {
+                    // If payment status is pending, treat it as success but continue retrying
+                    if (status === 'pending') {
+                        updateStatus("Payment success, pending for confirmation");
+                        displayPaymentDetails(data);
+
+                        if (retryCount < MAX_RETRIES) {
+                            retryCount++;
+                            setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                        } else {
+                            loadingElement.style.display = 'none';
+                            updateStatus("Payment success, pending for confirmation. Please check back later.");
+                        }
+                    } else if (status === 'success') {
+                        // Success status received
+                        loadingElement.style.display = 'none';
                         updateStatus("Payment was successful!");
+                        displayPaymentDetails(data);
                     } else {
-                        updateStatus("Payment status: " + data.statusText);
+                        // Other status (failure, expired, etc.)
+                        loadingElement.style.display = 'none';
+                        updateStatus("Payment status: " + statusText);
+                        displayPaymentDetails(data);
                     }
 
                     // Validate against expected status - treat "error" and "failed" as equivalent
-                    if (expectedStatus && expectedStatus !== status) {
+                    if (expectedStatus && expectedStatus !== status && status !== 'pending') {
                         // If both are error types, don't show a warning
                         const errorTypes = ['error', 'failed', 'failure'];
                         if (!(errorTypes.includes(expectedStatus) && errorTypes.includes(status))) {
                             updateStatus(`Warning: Expected status (${expectedStatus}) does not match actual payment status (${status}).`, true);
                         }
                     }
-
-                    displayPaymentDetails(data);
                 } else {
-                    setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                    } else {
+                        loadingElement.style.display = 'none';
+                        updateStatus("Payment details not found after multiple attempts.", true);
+                    }
                 }
             })
             .catch(error => {
-                setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                } else {
+                    loadingElement.style.display = 'none';
+                    updateStatus("Failed to verify payment after multiple attempts.", true);
+                }
             });
     }
 

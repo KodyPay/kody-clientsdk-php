@@ -78,7 +78,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
 <body>
 <h1>Send Payment to Terminal</h1>
 <h2>Terminal ID: <?php echo $terminalId; ?></h2>
-<form action="terminal_submit_payment.php" method="POST">
+<form action="terminal_submit_payment.php?tid=<?php echo $terminalId; ?>" method="POST">
     <label for="amount">Amount:</label>
     <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" step="0.01" required>
 

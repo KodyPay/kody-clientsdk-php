@@ -62,18 +62,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
 
     error_log("Request submitted");
 
-    // Capture the orderId from the callback
-    $orderId = null;
+    // Capture the paymentId from the callback
+    $paymentId = null;
     foreach ($call->responses() as $reply) {
         if ($reply->getStatus() === PaymentStatus::PENDING) {
-            $orderId = $reply->getPaymentId();
-            $_SESSION['current_order_id'] = $orderId;
+            $paymentId = $reply->getPaymentId();
+            $_SESSION['current_payment_id'] = $paymentId;
             break;
         }
     }
 
-    if ($orderId) {
-        echo "<h2>Collecting payment for Order ID: $orderId</h2>";
+    if ($paymentId) {
+        echo "<h2>Collecting payment for Payment ID: $paymentId</h2>";
         echo "<div id='loading'>Waiting for payment...</div>";
         echo "<div id='payment-result' style='display:none;'></div>";
         echo "<div id='cancel-button' style='display:none;'>";
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         echo "<input type='hidden' name='terminal_id' value='" . htmlspecialchars($_POST['terminal_id']) . "'>";
         echo "<input type='hidden' name='store_id' value='" . htmlspecialchars($config['store_id']) . "'>";
         echo "<input type='hidden' name='amount' value='" . htmlspecialchars($amount) . "'>";
-        echo "<input type='hidden' name='order_id' value='" . htmlspecialchars($orderId) . "'>";
+        echo "<input type='hidden' name='payment_id' value='" . htmlspecialchars($paymentId) . "'>";
         echo "<button type='submit'>Cancel Payment</button>";
         echo "</form>";
         echo "</div>";
@@ -95,13 +95,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
 }
 ?>
 
-<?php if (isset($orderId)): ?>
+<?php if (isset($paymentId)): ?>
     <script>
-        let orderId = "<?php echo $orderId; ?>";
+        let paymentId = "<?php echo $paymentId; ?>";
 
         function checkPaymentStatus() {
             let xhr = new XMLHttpRequest();
-            xhr.open('GET', 'terminal_payment_status_check.php?order_id=' + orderId, true);
+            xhr.open('GET', 'terminal_payment_status_check.php?payment_id=' + paymentId, true);
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     let response = JSON.parse(xhr.responseText);
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
                         let resultDiv = document.getElementById('payment-result');
                         resultDiv.style.display = 'block';
                         resultDiv.innerHTML = `<h2>Payment Status: ${response.status}</h2><pre>${JSON.stringify(response, null, 2)}</pre>
-                                               <a href="terminal_payment_form.php">New payment</a> | <a href="terminals.php">Terminals list</a>`;
+                                               <a href="terminal_payment_form.php?tid=<?php echo $_GET['tid']; ?>">New payment</a> | <a href="terminals.php">Terminals list</a>`;
                         document.getElementById('cancel-button').style.display = 'none';
                     }
                 } else {

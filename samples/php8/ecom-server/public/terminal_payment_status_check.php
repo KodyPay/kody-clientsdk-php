@@ -7,8 +7,8 @@ use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
 use Com\Kodypay\Grpc\Pay\V1\PaymentDetailsRequest;
 use Grpc\ChannelCredentials;
 
-if (isset($_GET['order_id'])) {
-    $orderId = $_GET['order_id'];
+if (isset($_GET['payment_id'])) {
+    $paymentId = $_GET['payment_id'];
 
     $client = new KodyPayTerminalServiceClient($config['hostname'], [
         'credentials' => ChannelCredentials::createSsl()
@@ -17,7 +17,7 @@ if (isset($_GET['order_id'])) {
 
     $request = new PaymentDetailsRequest();
     $request->setStoreId($config['store_id']);
-    $request->setOrderId($orderId);
+    $request->setOrderId($paymentId);
 
     list($response, $status) = $client->PaymentDetails($request, $metadata)->wait();
 
@@ -32,7 +32,6 @@ if (isset($_GET['order_id'])) {
     $data = [
         'status' => $response->getStatus(),
         'paymentId' => $response->getPaymentId(),
-        'orderId' => $response->getOrderId(),
         'paymentReference' => $response->getPaymentReference(),
         'failureReason' => $response->getFailureReason(),
         'dateCreated' => $response->getDateCreated() ?
@@ -57,5 +56,5 @@ if (isset($_GET['order_id'])) {
     echo json_encode($data);
 } else {
     http_response_code(400);
-    echo json_encode(['error' => 'Missing required order_id parameter']);
+    echo json_encode(['error' => 'Missing required payment_id parameter']);
 }

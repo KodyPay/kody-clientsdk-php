@@ -49,7 +49,7 @@ if (empty($paymentReference)) {
         .success { background-color: #d4edda; color: #155724; }
         .failure, .failed { background-color: #f8d7da; color: #721c24; }
         .expired { background-color: #fff3cd; color: #856404; }
-        .error { background-color: #fff3cd; color: #856404; }
+        .error { background-color: #f8d7da; color: #721c24; }
         .unknown { background-color: #e2e3e5; color: #383d41; }
         .invalid { background-color: #f8d7da; color: #721c24; }
         .no-result { background-color: #e2e3e5; color: #383d41; }
@@ -296,9 +296,9 @@ if (empty($paymentReference)) {
                         loadingElement.style.display = 'none';
 
                         if (expectedStatus === 'error') {
-                            updateStatus('error', "Payment verification incomplete. Please contact customer support.");
+                            updateStatus('error', "Payment verification incomplete. Please try again later.");
                         } else if (expectedStatus === 'success') {
-                            updateStatus('pending', "Payment submitted but confirmation is pending. Please check your email.");
+                            updateStatus('pending', "Payment submitted but confirmation is pending. Please try again later.");
                         } else {
                             updateStatus('unknown', "Payment details not found after multiple attempts.");
                         }

@@ -14,6 +14,12 @@ if (empty($paymentReference)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Result</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
         .message {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -88,7 +94,15 @@ if (empty($paymentReference)) {
 <?php else: ?>
     <!-- Initial status message based on status parameter -->
     <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
-        <?php echo htmlspecialchars(ucfirst($expectedStatus) . " payment status."); ?>
+        <?php
+        if ($expectedStatus == 'error'):
+            echo "Payment is error. Awaiting confirmation.";
+        elseif ($expectedStatus == 'success'):
+            echo "Payment was successful. Awaiting confirmation.";
+        else:
+            echo htmlspecialchars(ucfirst($expectedStatus) . " payment status.");
+        endif;
+        ?>
     </div>
 
     <!-- Loading indicator -->
@@ -126,9 +140,9 @@ if (empty($paymentReference)) {
     const paymentReference = "<?php echo htmlspecialchars($paymentReference); ?>";
     const expectedStatus = "<?php echo htmlspecialchars($expectedStatus); ?>";
 
-    function updateStatus(status, isError = false) {
-        statusMessage.textContent = status;
-        statusMessage.className = "message " + (isError ? "error" : status.toLowerCase());
+    function updateStatus(status, message) {
+        statusMessage.textContent = message;
+        statusMessage.className = "message " + status;
     }
 
     function displayPaymentDetails(data) {
@@ -233,64 +247,73 @@ if (empty($paymentReference)) {
 
     function fetchPaymentStatus() {
         fetch(`api/payment_details.php?paymentReference=${paymentReference}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     const status = data.status || 'unknown';
                     const statusText = data.statusText || '';
 
-                    // If payment status is pending, treat it as success but continue retrying
-                    if (status === 'pending') {
-                        statusMessage.style.backgroundColor = '#cce5ff';
-                        updateStatus("Payment successful, awaiting confirmation.");
-                        displayPaymentDetails(data);
+                    displayPaymentDetails(data);
 
-                        if (retryCount < MAX_RETRIES) {
-                            retryCount++;
-                            setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                    // Always keep retrying for pending status
+                    if (status === 'pending') {
+                        if (expectedStatus === 'error') {
+                            updateStatus('pending', "Payment is error. Awaiting confirmation.");
+                        } else if (expectedStatus === 'success') {
+                            updateStatus('pending', "Payment was successful. Awaiting confirmation.");
                         } else {
-                            loadingElement.style.display = 'none';
-                            updateStatus("Payment successful, awaiting confirmation. Please check back later.");
+                            updateStatus('pending', "Payment is being processed. Please wait...");
                         }
-                    } else if (status === 'success') {
-                        // Success status received
-                        loadingElement.style.display = 'none';
-                        statusMessage.style.backgroundColor = '#d4edda';
-                        updateStatus("Payment was successful!");
-                        displayPaymentDetails(data);
-                    } else {
-                        // Other status (failure, expired, etc.)
-                        loadingElement.style.display = 'none';
-                        statusMessage.style.backgroundColor = '#f8d7da';
-                        updateStatus("Payment status: " + statusText);
-                        displayPaymentDetails(data);
+
+                        // Always retry for pending status
+                        retryCount++;
+                        setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                        return;
                     }
 
-                    // Validate against expected status - treat "error" and "failed" as equivalent
-                    if (expectedStatus && expectedStatus !== status && status !== 'pending') {
-                        // If both are error types, don't show a warning
-                        const errorTypes = ['error', 'failed', 'failure'];
-                        if (!(errorTypes.includes(expectedStatus) && errorTypes.includes(status))) {
-                            updateStatus(`Warning: Expected status (${expectedStatus}) does not match actual payment status (${status}).`, true);
-                        }
+                    // For non-pending statuses, show final result
+                    loadingElement.style.display = 'none';
+
+                    if (status === 'success') {
+                        updateStatus('success', "Payment completed successfully!");
+                    } else if (status === 'error' || status === 'failure' || status === 'failed') {
+                        updateStatus(status, `Payment failed: ${statusText}`);
+                    } else {
+                        updateStatus(status, `Payment status: ${statusText}`);
                     }
                 } else {
+                    // No data available yet, retry
                     if (retryCount < MAX_RETRIES) {
                         retryCount++;
                         setTimeout(fetchPaymentStatus, RETRY_DELAY);
                     } else {
+                        // Max retries reached
                         loadingElement.style.display = 'none';
-                        updateStatus("Payment details not found after multiple attempts.", true);
+
+                        if (expectedStatus === 'error') {
+                            updateStatus('error', "Payment verification incomplete. Please try again later.");
+                        } else if (expectedStatus === 'success') {
+                            updateStatus('pending', "Payment submitted but confirmation is pending. Please try again later.");
+                        } else {
+                            updateStatus('unknown', "Payment details not found after multiple attempts.");
+                        }
                     }
                 }
             })
             .catch(error => {
+                console.error("Error fetching payment details:", error);
+
                 if (retryCount < MAX_RETRIES) {
                     retryCount++;
                     setTimeout(fetchPaymentStatus, RETRY_DELAY);
                 } else {
                     loadingElement.style.display = 'none';
-                    updateStatus("Failed to verify payment after multiple attempts.", true);
+                    updateStatus('unknown', "Error communicating with payment service. Please try again later.");
                 }
             });
     }

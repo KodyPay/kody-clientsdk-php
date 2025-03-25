@@ -241,6 +241,7 @@ if (empty($paymentReference)) {
 
                     // If payment status is pending, treat it as success but continue retrying
                     if (status === 'pending') {
+                        statusMessage.style.backgroundColor = '#cce5ff';
                         updateStatus("Payment successful, awaiting confirmation.");
                         displayPaymentDetails(data);
 
@@ -254,11 +255,13 @@ if (empty($paymentReference)) {
                     } else if (status === 'success') {
                         // Success status received
                         loadingElement.style.display = 'none';
+                        statusMessage.style.backgroundColor = '#d4edda';
                         updateStatus("Payment was successful!");
                         displayPaymentDetails(data);
                     } else {
                         // Other status (failure, expired, etc.)
                         loadingElement.style.display = 'none';
+                        statusMessage.style.backgroundColor = '#f8d7da';
                         updateStatus("Payment status: " + statusText);
                         displayPaymentDetails(data);
                     }

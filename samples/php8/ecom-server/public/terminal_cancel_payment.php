@@ -48,9 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
         ];
     }
 
-    // Don't echo JSON if we're going to redirect
-    //echo json_encode($data);
-
     // Redirect back to the payment form page
     header('Location: terminals.php?status=' . urlencode($data['status']) . '&message=' . urlencode($data['message']));
     exit;

@@ -260,60 +260,30 @@ if (empty($paymentReference)) {
 
                     displayPaymentDetails(data);
 
-                    // Check for status mismatch first
-                    if (expectedStatus === 'success' && (status === 'error' || status === 'failure' || status === 'failed')) {
-                        // Expected success but got failure
-                        loadingElement.style.display = 'none';
-                        updateStatus(status, `Payment failed: ${statusText}`);
-                        return;
-                    } else if (expectedStatus === 'error' && status === 'success') {
-                        // Expected error but got success
-                        loadingElement.style.display = 'none';
-                        updateStatus('success', "Payment was successful despite initial error!");
+                    // Always keep retrying for pending status
+                    if (status === 'pending') {
+                        if (expectedStatus === 'error') {
+                            updateStatus('pending', "Payment is error. Awaiting confirmation.");
+                        } else if (expectedStatus === 'success') {
+                            updateStatus('pending', "Payment was successful. Awaiting confirmation.");
+                        } else {
+                            updateStatus('pending', "Payment is being processed. Please wait...");
+                        }
+
+                        // Always retry for pending status
+                        retryCount++;
+                        setTimeout(fetchPaymentStatus, RETRY_DELAY);
                         return;
                     }
 
-                    // Handle expected error status
-                    if (expectedStatus === 'error') {
-                        if (status === 'error' || status === 'failure' || status === 'failed') {
-                            loadingElement.style.display = 'none';
-                            updateStatus(status, `Payment failed: ${statusText}`);
-                        } else if (status === 'pending') {
-                            updateStatus('pending', "Payment is error. Awaiting confirmation.");
-                            if (retryCount < MAX_RETRIES) {
-                                retryCount++;
-                                setTimeout(fetchPaymentStatus, RETRY_DELAY);
-                            } else {
-                                loadingElement.style.display = 'none';
-                                updateStatus('error', "Payment status is still being processed. Please check back later.");
-                            }
-                        } else {
-                            loadingElement.style.display = 'none';
-                            updateStatus(status, `Payment status: ${statusText}`);
-                        }
-                    }
-                    // Handle expected success status
-                    else if (expectedStatus === 'success') {
-                        if (status === 'success') {
-                            loadingElement.style.display = 'none';
-                            updateStatus('success', "Payment completed successfully!");
-                        } else if (status === 'pending') {
-                            updateStatus('pending', "Payment was successful. Awaiting confirmation.");
-                            if (retryCount < MAX_RETRIES) {
-                                retryCount++;
-                                setTimeout(fetchPaymentStatus, RETRY_DELAY);
-                            } else {
-                                loadingElement.style.display = 'none';
-                                updateStatus('pending', "Payment is still being processed. Please check back later.");
-                            }
-                        } else {
-                            loadingElement.style.display = 'none';
-                            updateStatus(status, `Payment status: ${statusText}`);
-                        }
-                    }
-                    // Handle any other expected status
-                    else {
-                        loadingElement.style.display = 'none';
+                    // For non-pending statuses, show final result
+                    loadingElement.style.display = 'none';
+
+                    if (status === 'success') {
+                        updateStatus('success', "Payment completed successfully!");
+                    } else if (status === 'error' || status === 'failure' || status === 'failed') {
+                        updateStatus(status, `Payment failed: ${statusText}`);
+                    } else {
                         updateStatus(status, `Payment status: ${statusText}`);
                     }
                 } else {

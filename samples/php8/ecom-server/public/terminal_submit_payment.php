@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
     $orderId = null;
     foreach ($call->responses() as $reply) {
         if ($reply->getStatus() === PaymentStatus::PENDING) {
-            $orderId = $reply->getIdempotencyUuid();
+            $orderId = $reply->getPaymentId();
             $_SESSION['current_order_id'] = $orderId;
             break;
         }

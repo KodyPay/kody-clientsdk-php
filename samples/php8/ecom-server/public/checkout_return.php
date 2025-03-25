@@ -1,5 +1,4 @@
 <?php
-
 $expectedStatus = isset($_GET['status']) ? strtolower($_GET['status']) : "";
 $paymentReference = isset($_GET['paymentReference']) ? $_GET['paymentReference'] : "";
 
@@ -116,6 +115,8 @@ if (empty($paymentReference)) {
 <?php if (!empty($paymentReference)): ?>
 <script>
     const RETRY_DELAY = 2000; // ms
+    const MAX_RETRIES = 30;
+    let retryCount = 0;
 
     const statusMessage = document.getElementById('status-message');
     const loadingElement = document.getElementById('loading');
@@ -131,68 +132,166 @@ if (empty($paymentReference)) {
     }
 
     function displayPaymentDetails(data) {
+        // Main payment details
         const fields = [
             { key: 'paymentId', label: 'Payment ID' },
             { key: 'paymentReference', label: 'Payment Reference' },
-            { key: 'orderId', label: 'Order ID' },
-            { key: 'statusText', label: 'Status' },
+            { key: 'status', label: 'Status', value: data.statusText },
+            { key: 'rawStatus', label: 'Raw Status' },
             { key: 'dateCreated', label: 'Date Created' },
             { key: 'datePaid', label: 'Date Paid' }
         ];
 
+        // Payment data fields
+        const paymentDataFields = [
+            { key: 'pspReference', label: 'PSP Reference' },
+            { key: 'paymentMethodVariant', label: 'Payment Method' },
+            { key: 'authStatus', label: 'Auth Status' },
+            { key: 'authStatusDate', label: 'Auth Status Date' }
+        ];
+
+        // Sale data fields
+        const saleDataFields = [
+            { key: 'amount', label: 'Amount' },
+            { key: 'currency', label: 'Currency' },
+            { key: 'orderId', label: 'Order ID' },
+            { key: 'orderMetadata', label: 'Order Metadata' }
+        ];
+
+        // Wallet data fields
+        const walletDataFields = [
+            { key: 'paymentLinkId', label: 'Payment Link ID' },
+            { key: 'cardLast4Digits', label: 'Card Last 4 Digits' }
+        ];
+
         detailsBody.innerHTML = '';
 
+        // Add main fields
         fields.forEach(field => {
-            if (data[field.key]) {
+            if (data[field.key] !== undefined || field.value !== undefined) {
                 const row = document.createElement('tr');
-
                 const labelCell = document.createElement('th');
                 labelCell.textContent = field.label;
-
                 const valueCell = document.createElement('td');
-                valueCell.textContent = data[field.key];
-
+                valueCell.textContent = field.value !== undefined ? field.value : data[field.key];
                 row.appendChild(labelCell);
                 row.appendChild(valueCell);
                 detailsBody.appendChild(row);
             }
         });
 
+        // Add payment data fields
+        if (data.paymentData) {
+            paymentDataFields.forEach(field => {
+                if (data.paymentData[field.key] !== undefined) {
+                    const row = document.createElement('tr');
+                    const labelCell = document.createElement('th');
+                    labelCell.textContent = field.label;
+                    const valueCell = document.createElement('td');
+                    valueCell.textContent = data.paymentData[field.key];
+                    row.appendChild(labelCell);
+                    row.appendChild(valueCell);
+                    detailsBody.appendChild(row);
+                }
+            });
+        }
+
+        // Add sale data fields
+        if (data.saleData) {
+            saleDataFields.forEach(field => {
+                if (data.saleData[field.key] !== undefined) {
+                    const row = document.createElement('tr');
+                    const labelCell = document.createElement('th');
+                    labelCell.textContent = field.label;
+                    const valueCell = document.createElement('td');
+                    valueCell.textContent = data.saleData[field.key];
+                    row.appendChild(labelCell);
+                    row.appendChild(valueCell);
+                    detailsBody.appendChild(row);
+                }
+            });
+        }
+
+        // Add wallet data fields if available
+        if (data.paymentData && data.paymentData.paymentWallet) {
+            walletDataFields.forEach(field => {
+                if (data.paymentData.paymentWallet[field.key] !== undefined) {
+                    const row = document.createElement('tr');
+                    const labelCell = document.createElement('th');
+                    labelCell.textContent = field.label;
+                    const valueCell = document.createElement('td');
+                    valueCell.textContent = data.paymentData.paymentWallet[field.key];
+                    row.appendChild(labelCell);
+                    row.appendChild(valueCell);
+                    detailsBody.appendChild(row);
+                }
+            });
+        }
+
         detailsContainer.style.display = 'block';
-   }
+    }
 
     function fetchPaymentStatus() {
         fetch(`api/payment_details.php?paymentReference=${paymentReference}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // We have valid payment details
-                    loadingElement.style.display = 'none';
-
                     const status = data.status || 'unknown';
+                    const statusText = data.statusText || '';
 
-                    if (status === 'success') {
+                    // If payment status is pending, treat it as success but continue retrying
+                    if (status === 'pending') {
+                        statusMessage.style.backgroundColor = '#cce5ff';
+                        updateStatus("Payment successful, awaiting confirmation.");
+                        displayPaymentDetails(data);
+
+                        if (retryCount < MAX_RETRIES) {
+                            retryCount++;
+                            setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                        } else {
+                            loadingElement.style.display = 'none';
+                            updateStatus("Payment successful, awaiting confirmation. Please check back later.");
+                        }
+                    } else if (status === 'success') {
+                        // Success status received
+                        loadingElement.style.display = 'none';
+                        statusMessage.style.backgroundColor = '#d4edda';
                         updateStatus("Payment was successful!");
+                        displayPaymentDetails(data);
                     } else {
-                        updateStatus("Payment status: " + data.statusText);
+                        // Other status (failure, expired, etc.)
+                        loadingElement.style.display = 'none';
+                        statusMessage.style.backgroundColor = '#f8d7da';
+                        updateStatus("Payment status: " + statusText);
+                        displayPaymentDetails(data);
                     }
 
                     // Validate against expected status - treat "error" and "failed" as equivalent
-                    if (expectedStatus && expectedStatus !== status) {
+                    if (expectedStatus && expectedStatus !== status && status !== 'pending') {
                         // If both are error types, don't show a warning
                         const errorTypes = ['error', 'failed', 'failure'];
                         if (!(errorTypes.includes(expectedStatus) && errorTypes.includes(status))) {
                             updateStatus(`Warning: Expected status (${expectedStatus}) does not match actual payment status (${status}).`, true);
                         }
                     }
-
-                    displayPaymentDetails(data);
                 } else {
-                    setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                    } else {
+                        loadingElement.style.display = 'none';
+                        updateStatus("Payment details not found after multiple attempts.", true);
+                    }
                 }
             })
             .catch(error => {
-                setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    setTimeout(fetchPaymentStatus, RETRY_DELAY);
+                } else {
+                    loadingElement.style.display = 'none';
+                    updateStatus("Failed to verify payment after multiple attempts.", true);
+                }
             });
     }
 

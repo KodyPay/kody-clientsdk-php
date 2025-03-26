@@ -98,31 +98,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
 <?php if (isset($paymentId)): ?>
     <script>
         let paymentId = "<?php echo $paymentId; ?>";
+        let maxRetries = 60;
+        let retryCount = 0;
+        let interval = 1000; // 1 second
 
         function checkPaymentStatus() {
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', 'terminal_payment_status_check.php?payment_id=' + paymentId, true);
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    let response = JSON.parse(xhr.responseText);
-                    if (response.status === 0) {
-                        document.getElementById('cancel-button').style.display = 'block';
-                        setTimeout(checkPaymentStatus, 1000);
-                    } else {
-                        document.getElementById('loading').style.display = 'none';
-                        let resultDiv = document.getElementById('payment-result');
-                        resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = `<h2>Payment Status: ${response.status}</h2><pre>${JSON.stringify(response, null, 2)}</pre>
-                                               <a href="terminal_payment_form.php?tid=<?php echo $_GET['tid']; ?>">New payment</a> | <a href="terminals.php">Terminals list</a>`;
-                        document.getElementById('cancel-button').style.display = 'none';
-                    }
-                } else {
-                    console.error('Error checking payment status:', xhr.statusText);
+            fetch('terminal_payment_status_check.php?payment_id=' + paymentId)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
                 }
-            };
-            xhr.send();
+                return response.json();
+            })
+            .then(response => {
+                if (response.status === 0) {
+                    // Payment still pending, show cancel button and continue polling
+                    document.getElementById('cancel-button').style.display = 'block';
+                    scheduleNextCheck();
+                } else {
+                    // Payment completed with success or error
+                    document.getElementById('loading').style.display = 'none';
+                    let resultDiv = document.getElementById('payment-result');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `<h2>Payment Status: ${response.status}</h2><pre>${JSON.stringify(response, null, 2)}</pre>
+                                       <a href="terminal_payment_form.php?tid=<?php echo htmlspecialchars($_POST['terminal_id'] ?? ''); ?>">New payment</a> | <a href="terminals.php">Terminals list</a>`;
+                    document.getElementById('cancel-button').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking payment status:', error);
+                scheduleNextCheck();
+            });
         }
 
-        setTimeout(checkPaymentStatus, 1000);
+        function scheduleNextCheck() {
+            retryCount++;
+            if (retryCount <= maxRetries) {
+                setTimeout(checkPaymentStatus, interval);
+            } else {
+                document.getElementById('loading').style.display = 'none';
+                let resultDiv = document.getElementById('payment-result');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `<h2>Payment Status Check Timed Out</h2>
+                                      <p>The payment status check has timed out after ${maxRetries} attempts.</p>
+                                      <a href="terminal_payment_form.php?tid=<?php echo htmlspecialchars($_POST['terminal_id'] ?? ''); ?>">New payment</a> | <a href="terminals.php">Terminals list</a>`;
+            }
+        }
+
+        // Start checking payment status
+        setTimeout(checkPaymentStatus, interval);
     </script>
 <?php endif; ?>

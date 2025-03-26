@@ -49,10 +49,8 @@ if (empty($paymentReference)) {
         .success { background-color: #d4edda; color: #155724; }
         .failure, .failed { background-color: #f8d7da; color: #721c24; }
         .expired { background-color: #fff3cd; color: #856404; }
-        .error { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #fff3cd; color: #856404; }
         .unknown { background-color: #e2e3e5; color: #383d41; }
-        .invalid { background-color: #f8d7da; color: #721c24; }
-        .no-result { background-color: #e2e3e5; color: #383d41; }
         .pending { background-color: #cce5ff; color: #004085; }
         .cancelled { background-color: #e2e3e5; color: #383d41; }
         .links {

@@ -1,4 +1,4 @@
-# Kody Payments API – PHP SDK
+# Kody API – PHP SDK
 
 This guide provides an overview of using the Kody PHP gRPC Client SDK and its reference documentation.
 
@@ -14,7 +14,6 @@ Kody provides client libraries for many popular languages to access the APIs. If
 
 Available languages:
 - Java: https://github.com/KodyPay/kody-clientsdk-java/
-- Java 6: https://github.com/KodyPay/kody-clientsdk-java6/
 - Python: https://github.com/KodyPay/kody-clientsdk-python/
 - PHP: https://github.com/KodyPay/kody-clientsdk-php/
 - .Net: https://github.com/KodyPay/kody-clientsdk-dotnet/
@@ -163,7 +162,6 @@ Ensure:
 
 - PHP: https://github.com/KodyPay/kody-clientsdk-php/tree/main/samples
 - Java: https://github.com/KodyPay/kody-clientsdk-java/tree/main/samples
-- Java6: https://github.com/KodyPay/kody-clientsdk-java6/tree/main/samples
 - Python: https://github.com/KodyPay/kody-clientsdk-python/tree/main/versions/3_12/samples
 - .Net: https://github.com/KodyPay/kody-clientsdk-dotnet/tree/main/samples
 

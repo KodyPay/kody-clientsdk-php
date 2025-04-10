@@ -70,7 +70,7 @@ $randomOrderId = generateRandomOrderId();
 <h1>Checkout</h1>
 <form action="checkout_payment.php" method="POST">
     <label for="amount">Amount:</label>
-    <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required>
+    <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required min="1" step="1" required>
 
     <label for="currency">Currency:</label>
     <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly" readonly>

@@ -120,19 +120,30 @@ if (isset($_GET['error'])) {
 ?>
 
 <h2>Developer Information</h2>
-<p>This page demonstrates how to initiate a payment. The form above collects the necessary information and sends a payment request to the backend.</p>
+<p>This page demonstrates how to initiate a payment using the KodyEcomPaymentsService API. The form above collects the necessary information and sends a payment request to the backend.</p>
 <ul>
-    <li><strong>Amount:</strong> The amount to be charged, in minor units (e.g., 2000 for 20.00).</li>
-    <li><strong>Currency:</strong> The currency in which the payment will be made. This is configured in code for this demo.</li>
-    <li><strong>Order ID:</strong> A unique identifier for the order. This can be changed to test different orders.</li>
-    <li><strong>Return URL:</strong> The URL to which the user will be redirected after the payment is completed. This is shown as a read-only field to demonstrate what the return URL will be.</li>
-    <li><strong>Enable expiration:</strong> Show the expiration options and include them in the request.</li>
+    <li><strong>Amount:</strong> The amount to be charged in minor units (e.g., 2000 for $20.00). This corresponds to the <code>amount_minor_units</code> field in the API.</li>
+    <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, USD) in which the payment will be made.</li>
+    <li><strong>Order ID:</strong> Your unique identifier for this order. This can be reused if the same order has multiple payments.</li>
+    <li><strong>Store ID:</strong> Your Kody store identifier (hidden field). This is required for all API calls.</li>
+    <li><strong>Enable expiration:</strong> Configure payment expiration settings.</li>
     <li style="list-style-type: none">
         <ul class="inside">
-            <li><strong>Expiration seconds:</strong> The seconds it will take for the payment to expire.</li>
-            <li><strong>Show timer:</strong> A flag that enables the expiration timer to show.</li>
+            <li><strong>Expiring seconds:</strong> Timeout duration in seconds (default: 1800). After this period, the payment will expire.</li>
+            <li><strong>Show timer:</strong> When enabled, displays a countdown timer on the payment page to indicate remaining time.</li>
         </ul>
     </li>
 </ul>
+
+<h3>API Response</h3>
+<p>Upon successful submission, the API will return:</p>
+<ul>
+    <li><strong>Payment ID:</strong> A unique identifier created by Kody for this payment</li>
+    <li><strong>Payment URL:</strong> The URL where the customer will be redirected to complete the payment</li>
+</ul>
+
+<p>After payment completion, the user will be redirected to the return URL specified in the backend configuration.</p>
+
+<p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
 </body>
 </html>

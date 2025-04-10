@@ -1,40 +1,67 @@
-# Kody PHP gRPC Client
+# Kody API – PHP SDK
 
-## Description
-The Kody PHP gRPC Client is an SDK generated from protobuf protocols to facilitate communication with the Kody Payments Gateway. This library provides a simple and efficient way to integrate Kody payment functionalities into your PHP applications.
+This guide provides an overview of using the Kody PHP gRPC Client SDK and its reference documentation.
 
-## Requirements
+- [Client Libraries](#client-libraries)
+- [PHP Installation](#php-installation)
+- [Authentication](#authentication)
+- [Documentation](#documentation)
+- [Sample Code](#sample-code)
+
+## Client Libraries
+
+Kody provides client libraries for many popular languages to access the APIs. If your desired programming language is supported by the client libraries, we recommend that you use this option.
+
+Available languages:
+- Java: https://github.com/KodyPay/kody-clientsdk-java/
+- Python: https://github.com/KodyPay/kody-clientsdk-python/
+- PHP: https://github.com/KodyPay/kody-clientsdk-php/
+- .Net: https://github.com/KodyPay/kody-clientsdk-dotnet/
+
+The advantages of using the Kody Client library instead of a REST API are:
+- Maintained by Kody.
+- Built-in authentication and increased security.
+- Built-in retries.
+- Idiomatic for each language.
+- Quicker development.
+- Backwards compatibility with new versions.
+
+If your coding language is not listed, please let the Kody team know and we will be able to create it for you.
+
+## PHP Installation
+
+### Requirements
 - PHP 7.2 or later
 - Composer
 - gRPC PHP extension
 
-## Installation
-
 ### Step 1: Install via Composer
-To install the Kody PHP gRPC Client, simply add it to your project's `composer.json` file and run `composer install`.
+
+Add the following to your `composer.json`:
 
 ```json
 {
-    "require": {
-        "kody/kody-php8-grpc-client": "v1.5.4"
-    },
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "kody/kody-php8-grpc-client",
-                "version": "v1.5.4",
-                "dist": {
-                    "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.5.4/kody-php8-grpc-package.zip"
-                }
-            }
+  "require": {
+    "kody/kody-php8-grpc-client": "v1.6.3"
+  },
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "kody/kody-php8-grpc-client",
+        "version": "v1.6.3",
+        "dist": {
+          "type": "zip",
+          "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.3/kody-php8-grpc-package.zip"
         }
-    ]
+      }
+    }
+  ]
 }
 ```
 
-Run the following command to install the dependencies:
+Then run:
+
 ```bash
 composer install
 ```
@@ -42,31 +69,48 @@ composer install
 ### Step 2: Install gRPC and Protobuf PHP Extensions
 
 #### macOS
-To install the gRPC extensions on macOS, use the following command:
+
 ```bash
 pecl install grpc
 ```
 
 #### Linux
-To install the gRPC and Protobuf extensions on Linux, use the following commands:
+
 ```bash
 sudo pecl install grpc
 ```
 
 #### Windows
-To install the gRPC and Protobuf extensions on Windows:
-1. Download the gRPC and Protobuf extension DLLs from the PECL website: https://pecl.php.net/package/grpc and https://pecl.php.net/package/protobuf
-2. Move the downloaded files to the `ext` directory of your PHP installation.
 
-Add the following lines to your `php.ini` file if you are running a live server:
+1. Download the gRPC and Protobuf extension DLLs from:
+   - https://pecl.php.net/package/grpc
+   - https://pecl.php.net/package/protobuf
+2. Place the files in your PHP `ext` directory.
+3. Add the following line to your `php.ini`:
+
 ```ini
 extension=grpc.so
 ```
 
-## Usage
+## Authentication
 
-### Example Script
-Here is an example of how to use the Kody PHP7 gRPC client to communicate with the Kody Payments Gateway:
+The client library uses a combination of a `Store ID` and an `API key`.
+
+These credentials will be provided to you during the integration onboarding process. You will start with test credentials and receive live credentials upon launch.
+
+### Host names
+
+- Development and test: `https://grpc-staging.kodypay.com`
+- Live: `https://grpc.kodypay.com`
+
+## Documentation
+
+For complete API documentation, examples, and integration guides, visit:
+📚 https://api-docs.kody.com
+
+## Sample Code
+
+Here’s a simple example that uses the Kody PHP gRPC client:
 
 ```php
 <?php
@@ -78,13 +122,12 @@ use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
 use Grpc\ChannelCredentials;
 
 $kody_api_hostname = 'grpc.kodypay.com';
-$store_id = '5fa2dd05-1805-494d-b843-fa1a7c34cf8a'; // Use your Kody store ID
-$api_key = ''; // Put your API key
+$store_id = 'your-store-id'; // Replace with your Store ID
+$api_key = 'your-api-key';   // Replace with your API key
 
 $client = new KodyPayTerminalServiceClient($kody_api_hostname, ['credentials' => ChannelCredentials::createSsl()]);
 $metadata = ['X-API-Key' => [$api_key]];
 
-echo "Requesting the list of terminals assigned to the store" . PHP_EOL;
 $request = new TerminalsRequest();
 $request->setStoreId($store_id);
 
@@ -100,8 +143,7 @@ if ($status->code !== \Grpc\STATUS_OK) {
 }
 ```
 
-### Running the Example
-Make sure you have completed the installation steps above, then run the example script:
+### Run the Example
 
 ```bash
 cd samples/php7
@@ -110,10 +152,19 @@ php src/index.php
 ```
 
 ## Troubleshooting
-If you encounter issues, ensure:
-- All required PHP extensions are installed and enabled.
-- Your `composer.json` is correctly set up and all dependencies are installed.
-- Contact Kody support or tech team
+
+Ensure:
+- PHP extensions for gRPC and Protobuf are installed and enabled.
+- Composer dependencies are properly installed.
+- Hostname and credentials are correct.
+
+## Sample Code Repositories
+
+- PHP: https://github.com/KodyPay/kody-clientsdk-php/tree/main/samples
+- Java: https://github.com/KodyPay/kody-clientsdk-java/tree/main/samples
+- Python: https://github.com/KodyPay/kody-clientsdk-python/tree/main/versions/3_12/samples
+- .Net: https://github.com/KodyPay/kody-clientsdk-dotnet/tree/main/samples
 
 ## License
+
 This project is licensed under the MIT License.

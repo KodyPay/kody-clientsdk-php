@@ -152,7 +152,7 @@ if (isset($_GET['error'])) {
 <p>This payment form accepts the following parameters:</p>
 <ul>
    <li><strong>Amount:</strong> The payment amount in minor units (e.g., 2000 = £20.00)</li>
-   <li><strong>Currency:</strong> Fixed as GBP for this demo</li>
+   <li><strong>Currency:</strong> Fixed as GBP for this demo (it can be configured per store)</li>
    <li><strong>Order ID:</strong> Unique order identifier, auto-generated but can be modified</li>
    <li><strong>Terminal ID:</strong> Required terminal serial number for payment processing</li>
    <li><strong>Show Tips:</strong> When enabled, displays tipping options on terminal</li>

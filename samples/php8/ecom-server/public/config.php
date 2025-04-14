@@ -24,6 +24,7 @@ $config = [
     'store_id' => $storeIdFromCookie ?: $_ENV['KODY_STORE_ID'] ?: '',
     'api_key' => $apiKeyFromCookie ?: $_ENV['KODY_API_KEY'] ?: '',
     'currency' => $_ENV['KODY_STORE_CURRENCY'] ?: '',
+    'currencies' => $_ENV['KODY_STORE_CURRENCIES'] ? explode(',', $_ENV['KODY_STORE_CURRENCIES']) : [],
     'redirect_url' => $_ENV['PAYMENT_REDIRECT_URL'] ?: '',
     'expiring_seconds' => $_ENV['PAYMENT_EXPIRING_SECONDS'] ?: 900,
 ];

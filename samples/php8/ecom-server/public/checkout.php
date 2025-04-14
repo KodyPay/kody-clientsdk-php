@@ -73,7 +73,14 @@ $randomOrderId = generateRandomOrderId();
     <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required min="1" step="1" required>
 
     <label for="currency">Currency:</label>
-    <input type="text" id="currency" name="currency" value="<?php echo $config['currency']; ?>" class="readonly" readonly>
+    <select id="currency" name="currency">
+        <?php foreach ($config['currencies'] as $currencyOption): ?>
+            <option value="<?php echo htmlspecialchars($currencyOption); ?>"
+                <?php echo ($config['currency'] === $currencyOption) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($currencyOption); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
@@ -123,7 +130,7 @@ if (isset($_GET['error'])) {
 <p>This page demonstrates how to initiate a payment using the KodyEcomPaymentsService API. The form above collects the necessary information and sends a payment request to the backend.</p>
 <ul>
     <li><strong>Amount:</strong> The amount to be charged in minor units (e.g., 2000 for $20.00). This corresponds to the <code>amount_minor_units</code> field in the API.</li>
-    <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, USD) in which the payment will be made.</li>
+    <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, HKD or USD) in which the payment will be made.</li>
     <li><strong>Order ID:</strong> Your unique identifier for this order. This can be reused if the same order has multiple payments.</li>
     <li><strong>Store ID:</strong> Your Kody store identifier (hidden field). This is required for all API calls.</li>
     <li><strong>Enable expiration:</strong> Configure payment expiration settings.</li>
@@ -144,6 +151,9 @@ if (isset($_GET['error'])) {
 
 <p>After payment completion, the user will be redirected to the return URL specified in the backend configuration.</p>
 
-<p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
+<h3>Test Cards</h3>
+<p>For testing purposes, you can use test cards available in the <a href="https://api-docs.kody.com/docs/getting-started/test-cards" target="_blank">Test Cards Documentation</a>.</p>
+
+<p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments/#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
 </body>
 </html>

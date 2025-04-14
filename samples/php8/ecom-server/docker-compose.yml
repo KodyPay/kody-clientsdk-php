@@ -5,10 +5,12 @@ services:
       - .env:/app/.env
       - ./public:/app/public
     environment:
-      KODY_HOSTNAME: "grpc-staging-eu.kodypay.com"
-      KODY_STORE_ID: "c4cebf51-b006-4bb9-acd5-bb4bcdbd6e09"
-      KODY_API_KEY: "0aY8Gqnx95WpmGnl6w8bxYO99As1vycBsb6soE_CQwd2"
-      PAYMENT_EXPIRING_SECONDS: 900
+      KODY_HOSTNAME: "${KODY_HOSTNAME:-grpc-staging-eu.kodypay.com}"
+      KODY_STORE_ID: "${KODY_STORE_ID:-c4cebf51-b006-4bb9-acd5-bb4bcdbd6e09}"
+      KODY_API_KEY: "${KODY_API_KEY:-0aY8Gqnx95WpmGnl6w8bxYO99As1vycBsb6soE_CQwd2}"
+      KODY_STORE_CURRENCY: "${KODY_STORE_CURRENCY:-GBP}"
+      KODY_STORE_CURRENCIES: "${KODY_STORE_CURRENCIES:-GBP,HKD,USD}"
+      PAYMENT_EXPIRING_SECONDS: "${PAYMENT_EXPIRING_SECONDS:-900}"
 
   nginx:
     image: nginx:latest

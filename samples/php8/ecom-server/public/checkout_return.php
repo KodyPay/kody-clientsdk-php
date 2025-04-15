@@ -121,7 +121,7 @@ if (empty($paymentReference)) {
 <?php endif; ?>
 
 <div class="links">
-    <a href="checkout.php">New online payment</a> | <a href="index.php">Main menu</a>
+    <a href="/checkout.php">New online payment</a> | <a href="/index.php">Main menu</a> | <a href="/transactions.php">List all transactions</a>
 </div>
 
 <?php if (!empty($paymentReference)): ?>

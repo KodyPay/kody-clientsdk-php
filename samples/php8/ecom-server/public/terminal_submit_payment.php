@@ -148,4 +148,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
         // Start checking payment status
         setTimeout(checkPaymentStatus, interval);
     </script>
+    <script src="js/bubble.php"></script>
 <?php endif; ?>

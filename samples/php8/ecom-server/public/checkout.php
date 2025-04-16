@@ -64,7 +64,19 @@ $randomOrderId = generateRandomOrderId();
         button:hover {
             background-color: #45a049;
         }
+
+        .links {
+            text-align: center;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
     </style>
+    <script src="js/bubble.php"></script>
 </head>
 <body>
 <h1>Checkout</h1>
@@ -109,6 +121,10 @@ $randomOrderId = generateRandomOrderId();
 
     <button type="submit">Pay</button>
 </form>
+
+<div class="links">
+    <a href="/index.php">Main menu</a>
+</div>
 
 <script type="text/javascript">
     function valueChanged() {

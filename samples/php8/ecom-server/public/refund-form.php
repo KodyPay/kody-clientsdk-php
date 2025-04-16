@@ -455,5 +455,6 @@ try {
         paymentDetailsElement.innerHTML = html;
     }
 </script>
+<script src="js/bubble.php"></script>
 </body>
 </html>

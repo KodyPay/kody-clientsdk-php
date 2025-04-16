@@ -12,16 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
         'checkout.php': 'https://api-docs.kody.com/docs/payments-api/ecom-payments/#1-initiate-payment',
         'checkout_return.php': 'https://api-docs.kody.com/docs/payments-api/ecom-payments/#3-payment-details',
         'transactions.php': 'https://api-docs.kody.com/docs/payments-api/ecom-payments/#5-get-payments',
+        'refund-form.php': 'https://api-docs.kody.com/docs/payments-api/ecom-payments/#6-refund-payments',
     };
 
     const bubble = document.createElement('div');
     bubble.className = 'docs-bubble';
-    bubble.innerHTML = '<span>?</span>';
+    bubble.innerHTML = '<span>API documentation</span>';
 
+    // Updated styles for a larger bubble with text
     bubble.style.position = 'fixed';
-    bubble.style.width = '50px';
-    bubble.style.height = '50px';
-    bubble.style.borderRadius = '50%';
+    bubble.style.width = 'auto';
+    bubble.style.height = 'auto';
+    bubble.style.minWidth = '160px';
+    bubble.style.padding = '10px 15px';
+    bubble.style.borderRadius = '25px';
     bubble.style.backgroundColor = '#28a745';
     bubble.style.color = 'white';
     bubble.style.bottom = '20px';
@@ -29,15 +33,16 @@ document.addEventListener('DOMContentLoaded', function() {
     bubble.style.display = 'flex';
     bubble.style.alignItems = 'center';
     bubble.style.justifyContent = 'center';
-    bubble.style.fontSize = '24px';
+    bubble.style.fontSize = '14px';
     bubble.style.fontWeight = 'bold';
     bubble.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
     bubble.style.cursor = 'pointer';
     bubble.style.zIndex = '9999';
     bubble.style.transition = 'transform 0.3s ease';
+    bubble.style.textAlign = 'center';
 
     bubble.addEventListener('mouseover', function() {
-        this.style.transform = 'scale(1.1)';
+        this.style.transform = 'scale(1.05)';
     });
 
     bubble.addEventListener('mouseout', function() {

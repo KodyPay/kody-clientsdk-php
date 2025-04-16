@@ -83,6 +83,7 @@ if (empty($paymentReference)) {
             background-color: #f2f2f2;
         }
     </style>
+    <script src="js/bubble.php"></script>
 </head>
 <body>
 <?php if (empty($paymentReference)): ?>

@@ -72,12 +72,28 @@ composer install
 
 ```bash
 pecl install grpc
+pecl install protobuf
+```
+
+Add this line to your `php.ini`:
+
+```ini
+extension=grpc.so
+extension=protobuf.so
 ```
 
 #### Linux
 
 ```bash
 sudo pecl install grpc
+sudo pecl install protobuf
+```
+
+Add this line to your `php.ini`:
+
+```ini
+extension=grpc.so
+extension=protobuf.so
 ```
 
 #### Windows
@@ -89,8 +105,11 @@ sudo pecl install grpc
 3. Add the following line to your `php.ini`:
 
 ```ini
-extension=grpc.so
+extension=php_grpc.dll
+extension=php_protobuf.dll
 ```
+
+For more information, see the [Install gRPC for PHP documentation](https://cloud.google.com/php/grpc).
 
 ## Authentication
 

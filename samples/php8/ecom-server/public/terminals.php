@@ -26,7 +26,18 @@
             font-size: 18px;
             text-align: center;
         }
+        .links {
+            text-align: center;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
     </style>
+    <script src="js/bubble.php"></script>
     <script>
         function fetchTerminals() {
             const tableBody = document.getElementById('terminals-body');
@@ -79,5 +90,8 @@
     <tr id="loading"><td colspan="3">Loading...</td></tr>
     </tbody>
 </table>
+<div class="links">
+    <a href="/index.php">Main menu</a>
+</div>
 </body>
 </html>

@@ -112,6 +112,16 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .links {
+            text-align: center;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
 
         .error-message {
             color: red;
@@ -121,6 +131,7 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             margin: 20px 0;
         }
     </style>
+    <script src="js/bubble.php"></script>
 </head>
 <body>
     <h1>Payment Transactions</h1>
@@ -135,6 +146,10 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
     </div>
 
     <div id="pagination" class="pagination"></div>
+
+    <div class="links">
+        <a href="/index.php">Main menu</a>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

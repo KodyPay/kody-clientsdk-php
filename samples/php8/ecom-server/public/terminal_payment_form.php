@@ -73,7 +73,19 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
+        .links {
+            text-align: center;
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
     </style>
+    <script src="js/bubble.php"></script>
 </head>
 <body>
 <h1>Send Payment to Terminal</h1>
@@ -131,6 +143,10 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
 
     <button type="submit">Pay</button>
 </form>
+
+<div class="links">
+    <a href="/terminals.php">Back to terminal list</a> | <a href="/index.php">Main menu</a>
+</div>
 
 <script type="text/javascript">
     // Disable the QR code scanner checkbox if the payment method type is CARD

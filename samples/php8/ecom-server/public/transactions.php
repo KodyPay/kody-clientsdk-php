@@ -284,49 +284,33 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             function fetchPaymentDetails(paymentId, row) {
                 console.log("Fetching details for payment ID: " + paymentId);
 
-                // Create AbortController to handle timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 500);
+                fetch('/api/payment_details.php?payment_id=' + encodeURIComponent(paymentId))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('HTTP error, status = ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Received response for payment ID: " + paymentId);
 
-                fetch('/api/payment_details.php?payment_id=' + encodeURIComponent(paymentId), {
-                    signal: controller.signal
-                })
-                .then(response => {
-                    // Clear the timeout as the response has arrived
-                    clearTimeout(timeoutId);
-
-                    if (!response.ok) {
-                        throw new Error('HTTP error, status = ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received response for payment ID: " + paymentId);
-
-                    if (data.success) {
-                        if (data.saleData && data.saleData.amount && data.saleData.currency) {
-                            const amountText = data.saleData.amount + ' ' + data.saleData.currency;
-                            row.querySelector('.paid-amount').textContent = amountText;
-                            console.log("Amount set: " + amountText);
+                        if (data.success) {
+                            if (data.saleData && data.saleData.amount && data.saleData.currency) {
+                                const amountText = data.saleData.amount + ' ' + data.saleData.currency;
+                                row.querySelector('.paid-amount').textContent = amountText;
+                                console.log("Amount set: " + amountText);
+                            } else {
+                                row.querySelector('.paid-amount').textContent = '';
+                                console.log("Missing amount or currency in response");
+                            }
                         } else {
                             row.querySelector('.paid-amount').textContent = '';
-                            console.log("Missing amount or currency in response");
+                            console.log("API call unsuccessful: " + JSON.stringify(data));
                         }
-                    } else {
-                        row.querySelector('.paid-amount').textContent = '';
-                        console.log("API call unsuccessful: " + JSON.stringify(data));
-                    }
-                })
-                .catch(error => {
-                    // Clear the timeout as the request failed
-                    clearTimeout(timeoutId);
-
-                    if (error.name === 'AbortError') {
-                        console.log("Request timed out for payment ID: " + paymentId);
-                    } else {
+                    })
+                    .catch(error => {
                         console.log("Error fetching payment details: " + error.message);
-                    }
-                });
+                    });
             }
 
             function showError(message) {

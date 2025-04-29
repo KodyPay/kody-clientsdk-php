@@ -69,7 +69,7 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
 <body>
 <div class="container">
     <h1>Welcome to the Kody Store Demo</h1>
-    <h3>Store ID: <?php echo htmlspecialchars($config['store_id']); ?></h3>
+    <h3>Store ID: <span id="storeIdDisplay"><?php echo htmlspecialchars($config['store_id']); ?></span></h3>
 
     <div class="option">
         <h2><a href="checkout.php">Online Payment Demo</a></h2>
@@ -123,9 +123,10 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
 function updateSettings(event) {
     event.preventDefault();
 
-    const storeId = document.getElementById('store_id').value || "<?php echo htmlspecialchars($config['store_id']); ?>";
-    const apiKey = document.getElementById('api_key').value || "";
+    const storeId = document.getElementById('store_id').value;
+    const apiKey = document.getElementById('api_key').value;
     const messageDiv = document.getElementById('message');
+    const storeIdDisplay = document.getElementById('storeIdDisplay');
 
     if (!storeId || !apiKey) {
         messageDiv.innerHTML = "Error: Both Store ID and API Key are required!";
@@ -136,6 +137,9 @@ function updateSettings(event) {
     // Set cookies for 1 day
     document.cookie = "store_id=" + encodeURIComponent(storeId) + "; max-age=86400; path=/; SameSite=Strict";
     document.cookie = "api_key=" + encodeURIComponent(apiKey) + "; max-age=86400; path=/; SameSite=Strict";
+
+    // Update only the Store ID value
+    storeIdDisplay.textContent = storeId;
 
     messageDiv.innerHTML = "Settings saved successfully!";
     messageDiv.style.display = "block";
@@ -148,6 +152,10 @@ function clearSettings() {
 
     document.getElementById('store_id').value = '';
     document.getElementById('api_key').value = '';
+
+    // Reset only the Store ID value
+    const storeIdDisplay = document.getElementById('storeIdDisplay');
+    storeIdDisplay.textContent = "<?php echo $_ENV['KODY_STORE_ID']; ?>";
 
     const messageDiv = document.getElementById('message');
     messageDiv.innerHTML = "Settings cleared successfully!";

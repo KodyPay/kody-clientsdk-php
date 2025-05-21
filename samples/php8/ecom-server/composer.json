@@ -14,10 +14,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php8-grpc-client",
-                "version": "v1.6.3",
+                "version": "v1.6.10",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.3/kody-php8-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.10/kody-php8-grpc-package.zip"
                 }
             }
         }

@@ -98,6 +98,11 @@ $randomOrderId = generateRandomOrderId();
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
     <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+        <label for="enable_pay_by_bank">Enable pay by bank: </label>
+        <input type="checkbox" id="enable_pay_by_bank" name="enable_pay_by_bank">
+    </div>
+
+    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
         <label for="enable_expiration">Enable expiration: </label>
         <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="valueChanged()">
     </div>
@@ -149,6 +154,7 @@ if (isset($_GET['error'])) {
     <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, HKD or USD) in which the payment will be made.</li>
     <li><strong>Order ID:</strong> Your unique identifier for this order. This can be reused if the same order has multiple payments.</li>
     <li><strong>Store ID:</strong> Your Kody store identifier (hidden field). This is required for all API calls.</li>
+    <li><strong>Enable pay by bank:</strong> Will determine whether the payment can be completed via pay by bank (the Kody store needs to have it configured).</li>
     <li><strong>Enable expiration:</strong> Configure payment expiration settings.</li>
     <li style="list-style-type: none">
         <ul class="inside">

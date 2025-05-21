@@ -42,7 +42,7 @@ Add the following to your `composer.json`:
 ```json
 {
   "require": {
-    "kody/kody-php8-grpc-client": "v1.6.3"
+    "kody/kody-php8-grpc-client": "v1.6.10"
   },
   "repositories": [
     {
@@ -52,7 +52,7 @@ Add the following to your `composer.json`:
         "version": "v1.6.3",
         "dist": {
           "type": "zip",
-          "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.3/kody-php8-grpc-package.zip"
+          "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.10/kody-php8-grpc-package.zip"
         }
       }
     }

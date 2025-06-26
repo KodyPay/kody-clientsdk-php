@@ -232,31 +232,31 @@
                 `;
 
                 // Add Request if exists
-                if (log.context && log.context.Request) {
+                if (log.context && (log.context.Request || log.context.request)) {
                     html += `
                         <div class="log-section">
                             <div class="log-label">Request:</div>
-                            <div class="log-value">${escapeHtml(log.context.Request)}</div>
+                            <div class="log-value">${escapeHtml(log.context.Request || log.context.request)}</div>
                         </div>
                     `;
                 }
 
                 // Add Response if exists
-                if (log.context && log.context.Response) {
+                if (log.context && (log.context.Response || log.context.response)) {
                     html += `
                         <div class="log-section">
                             <div class="log-label">Response:</div>
-                            <div class="log-value">${escapeHtml(log.context.Response)}</div>
+                            <div class="log-value">${escapeHtml(log.context.Response || log.context.response)}</div>
                         </div>
                     `;
                 }
 
                 // Add Error if exists
-                if (log.context && log.context['Error']) {
+                if (log.context && (log.context.Error || log.context.error)) {
                     html += `
                         <div class="log-section">
                             <div class="log-label">Error:</div>
-                            <div class="log-value">${escapeHtml(log.context['Error'])}</div>
+                            <div class="log-value">${escapeHtml(log.context.Error || log.context.error)}</div>
                         </div>
                     `;
                 }

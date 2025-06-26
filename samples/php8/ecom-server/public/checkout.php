@@ -97,10 +97,10 @@ $randomOrderId = generateRandomOrderId();
     <label for="order_id">Order ID:</label>
     <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
-    <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+    <!-- <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
         <label for="enable_pay_by_bank">Enable pay by bank: </label>
         <input type="checkbox" id="enable_pay_by_bank" name="enable_pay_by_bank">
-    </div>
+    </div> -->
 
     <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
         <label for="enable_expiration">Enable expiration: </label>

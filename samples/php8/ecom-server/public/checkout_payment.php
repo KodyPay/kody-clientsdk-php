@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request->setAmountMinorUnits($_POST['amount']);
     $request->setCurrency($_POST['currency']);
     $request->setOrderId($_POST['order_id']);
-    $request->setIsPayByBankAccepted($_POST['enable_pay_by_bank']);
+    // $request->setIsPayByBankAccepted($_POST['enable_pay_by_bank']);
     $request->setReturnUrl($config['redirect_url'].'?paymentReference='.$paymentReference);
 
     if (isset($_POST['enable_expiration'])) {

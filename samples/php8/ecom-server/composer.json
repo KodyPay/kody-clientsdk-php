@@ -14,10 +14,10 @@
             "type": "package",
             "package": {
                 "name": "kody/kody-php8-grpc-client",
-                "version": "v1.6.10",
+                "version": "v1.6.16",
                 "dist": {
                     "type": "zip",
-                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.10/kody-php8-grpc-package.zip"
+                    "url": "https://github.com/KodyPay/kody-clientsdk-php/releases/download/v1.6.16/kody-php8-grpc-package.zip"
                 }
             }
         }
@@ -28,6 +28,7 @@
         "psr-4": {
             "Com\\Kodypay\\Grpc\\Ecom\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Ecom/V1",
             "Com\\Kodypay\\Grpc\\Pay\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Pay/V1",
+            "Com\\Kodypay\\Grpc\\Utils\\V1\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Utils/V1",
             "Com\\Kodypay\\Grpc\\Sdk\\Common\\": "vendor/kody/kody-php8-grpc-client/Com/Kodypay/Grpc/Sdk/Common",
             "GPBMetadata\\": "vendor/kody/kody-php8-grpc-client/GPBMetadata"
         }

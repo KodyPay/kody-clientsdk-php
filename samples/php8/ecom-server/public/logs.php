@@ -142,10 +142,29 @@
         .refresh-btn:hover {
             background-color: #45a049;
         }
+
+        .top-nav {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="top-nav">
+            <a href="/index.php">← Back to Main Menu</a>
+        </div>
+
         <h1>KodyPay Logs</h1>
 
         <button id="refresh-btn" class="refresh-btn">Refresh Logs</button>

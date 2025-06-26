@@ -83,6 +83,10 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
         <h2><a href="transactions.php">List All Transactions</a></h2>
         <p>View all transactions made in the store.</p>
     </div>
+    <div class="option">
+        <h2><a href="logs.php">View Logs</a></h2>
+        <p>View all logs made in the store.</p>
+    </div>
     <div class="option settings">
         <h2>Settings - Staging Environment</h2>
         <p><b>Default Store ID:</b> <?php echo htmlspecialchars($defaultStoreId); ?></p>

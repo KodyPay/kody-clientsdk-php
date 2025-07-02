@@ -143,15 +143,19 @@
     </style>
     <script src="js/bubble.php"></script>
     <script>
+        let isFirstLoad = true;
+
         function fetchTerminals() {
             const container = document.getElementById('terminals-container');
 
-            // Show loading spinner
-            container.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <span>Loading terminals...</span>
-                </div>`;
+            // Only show loading spinner on first load
+            if (isFirstLoad) {
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>Loading terminals...</span>
+                    </div>`;
+            }
 
             fetch('api/terminals.php')
                 .then(response => {
@@ -198,10 +202,17 @@
 
                     html += `</tbody></table>`;
                     container.innerHTML = html;
+
+                    // Mark first load as complete
+                    isFirstLoad = false;
                 })
                 .catch(error => {
                     console.error('Error fetching terminals:', error);
-                    container.innerHTML = `<div class="error-message">${escapeHtml(error.message)}</div>`;
+                    // Only show error message, don't replace table if it's already loaded
+                    if (isFirstLoad) {
+                        container.innerHTML = `<div class="error-message">${escapeHtml(error.message)}</div>`;
+                        isFirstLoad = false;
+                    }
                 });
         }
 

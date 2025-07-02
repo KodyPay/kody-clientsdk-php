@@ -51,10 +51,15 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             font-size: 14px;
         }
 
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
         table {
             width: 100%;
+            min-width: 800px;
             border-collapse: collapse;
-            margin-top: 20px;
             background: white;
             border-radius: 6px;
             overflow: hidden;
@@ -65,6 +70,7 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #eee;
+            white-space: nowrap;
         }
 
         th {
@@ -195,8 +201,8 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
         }
     </style>
     <script src="js/bubble.php"></script>
-    </head>
-    <body>
+</head>
+<body>
     <div class="container">
         <div class="top-nav">
             <a href="/index.php">← Back to Main Menu</a>
@@ -267,22 +273,22 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
                     return;
                 }
 
-                // Build payments table
                 let html = `
-                    <table id="payments-table">
-                        <thead>
-                            <tr>
-                                <th>Payment ID</th>
-                                <th>Reference</th>
-                                <th>Order ID</th>
-                                <th>Status</th>
-                                <th>Created Date</th>
-                                <th>Paid Date</th>
-                                <th>Paid Amount</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="table-container">
+                        <table id="payments-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Reference</th>
+                                    <th>Order ID</th>
+                                    <th>Status</th>
+                                    <th>Created Date</th>
+                                    <th>Paid Date</th>
+                                    <th>Paid Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
 
                 payments.forEach(payment => {
@@ -308,7 +314,7 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
                     `;
                 });
 
-                html += `</tbody></table>`;
+                html += `</tbody></table></div>`;
                 document.getElementById('payments-container').innerHTML = html;
 
                 renderPagination(pagination);

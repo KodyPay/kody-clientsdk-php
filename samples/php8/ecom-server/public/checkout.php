@@ -17,6 +17,9 @@ function generateRandomOrderId($length = 8)
 }
 
 $randomOrderId = generateRandomOrderId();
+
+// Sanitize error message if present
+$errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
 ?>
 
 <!DOCTYPE html>
@@ -77,7 +80,6 @@ $randomOrderId = generateRandomOrderId();
 
         input[type="number"],
         input[type="text"],
-        input[type="url"],
         select {
             width: 100%;
             padding: 8px;
@@ -86,32 +88,13 @@ $randomOrderId = generateRandomOrderId();
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 14px;
-        }
-
-        .readonly {
-            background-color: #f9f9f9;
-            color: #666;
-        }
-
-        .payment-section {
-            background: #fafafa;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            color: #333;
-            font-weight: bold;
-            margin-bottom: 15px;
-            font-size: 16px;
+            box-sizing: border-box;
         }
 
         .checkbox-container {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .checkbox-container input[type="checkbox"] {
@@ -125,18 +108,13 @@ $randomOrderId = generateRandomOrderId();
             font-weight: normal;
         }
 
-        select[multiple] {
-            height: 200px;
-            padding: 5px;
+        .expiration-fields {
+            display: none;
+            margin-bottom: 20px;
+            padding: 20px;
             border: 1px solid #ccc;
             border-radius: 4px;
-        }
-
-        .help-text {
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 10px;
-            font-style: italic;
+            background-color: #fafafa;
         }
 
         button {
@@ -199,8 +177,12 @@ $randomOrderId = generateRandomOrderId();
         .dev-info li {
             margin-bottom: 5px;
         }
+
+        .dev-info .nested-list {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
     </style>
-    <script src="js/bubble.php"></script>
 </head>
 <body>
     <div class="container">
@@ -209,12 +191,17 @@ $randomOrderId = generateRandomOrderId();
         </div>
 
         <h1>Checkout</h1>
+
+        <?php if ($errorMessage): ?>
+            <div class="error-message">Error: <?php echo $errorMessage; ?></div>
+        <?php endif; ?>
+
         <form action="checkout_payment.php" method="POST">
             <label for="amount">Amount (minor units):</label>
-            <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required min="1" step="1" required>
+            <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required min="1" step="1">
 
             <label for="currency">Currency:</label>
-            <select id="currency" name="currency">
+            <select id="currency" name="currency" required>
                 <?php foreach ($config['currencies'] as $currencyOption): ?>
                     <option value="<?php echo htmlspecialchars($currencyOption); ?>"
                         <?php echo ($config['currency'] === $currencyOption) ? 'selected' : ''; ?>>
@@ -226,29 +213,21 @@ $randomOrderId = generateRandomOrderId();
             <label for="order_id">Order ID:</label>
             <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
-            <!-- <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
-                <label for="enable_pay_by_bank">Enable pay by bank: </label>
-                <input type="checkbox" id="enable_pay_by_bank" name="enable_pay_by_bank">
-            </div> -->
-
-            <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
-                <label for="enable_expiration">Enable expiration: </label>
-                <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="valueChanged()">
+            <div class="checkbox-container">
+                <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="toggleExpirationFields()">
+                <label for="enable_expiration">Enable expiration</label>
             </div>
 
-            <div id="expiration_fields" style="display: none; margin-bottom: 20px;
-            padding: 20px; border: 1px solid #ccc; border-radius: 4px">
+            <div id="expiration_fields" class="expiration-fields">
                 <label for="expiring_seconds">Expiring seconds:</label>
-                <input type="number" id="expiring_seconds" name="expiring_seconds" min="0" oninput="validity.valid||(value='');"
-                    value="<?php echo $config['expiring_seconds']; ?>">
+                <input type="number" id="expiring_seconds" name="expiring_seconds" min="0"
+                    value="<?php echo htmlspecialchars($config['expiring_seconds'] ?? '1800'); ?>">
 
                 <label for="show_timer">Show timer:</label>
-                <div style="margin-top:5px;">
-                    <select id="show_timer" name="show_timer">
-                        <option value="true">true</option>
-                        <option value="">false</option>
-                    </select>
-                </div>
+                <select id="show_timer" name="show_timer">
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
             </div>
 
             <input type="hidden" name="store_id" value="<?php echo htmlspecialchars($config['store_id']); ?>">
@@ -259,53 +238,53 @@ $randomOrderId = generateRandomOrderId();
         <div class="links">
             <a href="/index.php">Main menu</a>
         </div>
+
+        <div class="dev-info">
+            <h2>Developer Information</h2>
+            <p>This page demonstrates how to initiate a payment using the KodyEcomPaymentsService API. The form above collects the necessary information and sends a payment request to the backend.</p>
+            <ul>
+                <li><strong>Amount:</strong> The amount to be charged in minor units (e.g., 2000 for $20.00). This corresponds to the <code>amount_minor_units</code> field in the API.</li>
+                <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, HKD or USD) in which the payment will be made.</li>
+                <li><strong>Order ID:</strong> Your unique identifier for this order. This can be reused if the same order has multiple payments.</li>
+                <li><strong>Store ID:</strong> Your Kody store identifier (hidden field). This is required for all API calls.</li>
+                <li><strong>Enable expiration:</strong> Configure payment expiration settings.
+                    <ul class="nested-list">
+                        <li><strong>Expiring seconds:</strong> Timeout duration in seconds (default: 1800). After this period, the payment will expire.</li>
+                        <li><strong>Show timer:</strong> When enabled, displays a countdown timer on the payment page to indicate remaining time.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>API Response</h3>
+            <p>Upon successful submission, the API will return:</p>
+            <ul>
+                <li><strong>Payment ID:</strong> A unique identifier created by Kody for this payment</li>
+                <li><strong>Payment URL:</strong> The URL where the customer will be redirected to complete the payment</li>
+            </ul>
+
+            <p>After payment completion, the user will be redirected to the return URL specified in the backend configuration.</p>
+
+            <h3>Test Cards</h3>
+            <p>For testing purposes, you can use test cards available in the <a href="https://api-docs.kody.com/docs/getting-started/test-cards" target="_blank">Test Cards Documentation</a>.</p>
+
+            <p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments/#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
+        </div>
     </div>
 
-<script type="text/javascript">
-    function valueChanged() {
-        if (document.getElementById('enable_expiration').checked) {
-            document.getElementById("expiration_fields").style.display = 'block';
-        } else {
-            document.getElementById("expiration_fields").style.display = 'none';
+    <script>
+        function toggleExpirationFields() {
+            const checkbox = document.getElementById('enable_expiration');
+            const fields = document.getElementById('expiration_fields');
+
+            if (checkbox && fields) {
+                fields.style.display = checkbox.checked ? 'block' : 'none';
+            }
         }
-    }
-</script>
 
-<?php
-if (isset($_GET['error'])) {
-    echo '<p style="color:red;">Error: ' . htmlspecialchars($_GET['error']) . '</p>';
-}
-?>
-
-<h2>Developer Information</h2>
-<p>This page demonstrates how to initiate a payment using the KodyEcomPaymentsService API. The form above collects the necessary information and sends a payment request to the backend.</p>
-<ul>
-    <li><strong>Amount:</strong> The amount to be charged in minor units (e.g., 2000 for $20.00). This corresponds to the <code>amount_minor_units</code> field in the API.</li>
-    <li><strong>Currency:</strong> The ISO 4217 three-letter currency code (e.g., GBP, HKD or USD) in which the payment will be made.</li>
-    <li><strong>Order ID:</strong> Your unique identifier for this order. This can be reused if the same order has multiple payments.</li>
-    <li><strong>Store ID:</strong> Your Kody store identifier (hidden field). This is required for all API calls.</li>
-    <li><strong>Enable pay by bank:</strong> Will determine whether the payment can be completed via pay by bank (the Kody store needs to have it configured).</li>
-    <li><strong>Enable expiration:</strong> Configure payment expiration settings.</li>
-    <li style="list-style-type: none">
-        <ul class="inside">
-            <li><strong>Expiring seconds:</strong> Timeout duration in seconds (default: 1800). After this period, the payment will expire.</li>
-            <li><strong>Show timer:</strong> When enabled, displays a countdown timer on the payment page to indicate remaining time.</li>
-        </ul>
-    </li>
-</ul>
-
-<h3>API Response</h3>
-<p>Upon successful submission, the API will return:</p>
-<ul>
-    <li><strong>Payment ID:</strong> A unique identifier created by Kody for this payment</li>
-    <li><strong>Payment URL:</strong> The URL where the customer will be redirected to complete the payment</li>
-</ul>
-
-<p>After payment completion, the user will be redirected to the return URL specified in the backend configuration.</p>
-
-<h3>Test Cards</h3>
-<p>For testing purposes, you can use test cards available in the <a href="https://api-docs.kody.com/docs/getting-started/test-cards" target="_blank">Test Cards Documentation</a>.</p>
-
-<p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments/#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleExpirationFields();
+        });
+    </script>
 </body>
 </html>

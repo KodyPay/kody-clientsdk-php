@@ -76,13 +76,37 @@ try {
         echo "<style>
                 body {
                     font-family: Arial, sans-serif;
-                    max-width: 800px;
+                    margin: 20px;
+                    background-color: #f5f5f5;
+                }
+
+                .container {
+                    max-width: 1200px;
                     margin: 0 auto;
+                    background: white;
                     padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 h1 {
-                    margin-top: 0;
+                    color: #333;
+                    margin-bottom: 20px;
+                }
+
+                .top-nav {
+                    text-align: right;
+                    margin-bottom: 20px;
+                }
+
+                .top-nav a {
+                    text-decoration: none;
+                    color: #007bff;
+                    font-size: 14px;
+                }
+
+                .top-nav a:hover {
+                    text-decoration: underline;
                 }
 
                 table {
@@ -94,24 +118,57 @@ try {
                 th, td {
                     padding: 12px;
                     text-align: left;
-                    border-bottom: 1px solid #ddd;
+                    border: 1px solid #dee2e6;
                 }
 
                 th {
-                    background-color: #f5f5f5;
+                    background-color: #e9ecef;
                     font-weight: bold;
+                    color: #495057;
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
                 }
 
                 tr:hover {
-                    background-color: #f9f9f9;
+                    background-color: #e8f4f8;
+                }
+
+                .links {
+                    text-align: center;
+                    margin: 20px 0;
+                }
+
+                .links a {
+                    margin: 0 10px;
+                    text-decoration: none;
+                    color: #007bff;
+                }
+
+                .links a:hover {
+                    text-decoration: underline;
+                }
+
+                .error-message {
+                    color: red;
+                    padding: 20px;
+                    border: 1px solid #ffcccc;
+                    background-color: #fff8f8;
+                    margin: 20px 0;
+                    border-radius: 6px;
                 }
               </style>";
         echo "</head>";
         echo "<body>";
-        echo "<h1>Refund Result</h1>";
+        echo "    <div class='container'>";
+        echo "        <div class='top-nav'>";
+        echo "            <a href='/transactions.php'>← Back to Transactions</a>";
+        echo "        </div>";
+        echo "        <h1>Refund Result</h1>";
 
         if (empty($refunds)) {
-            echo "<p style='font-weight: bold; color: red;'>Refund Error: Exceeded the maximum refund amount.</p>";
+            echo "        <div class='error-message'>Refund Error: Exceeded the maximum refund amount.</div>";
         } else {
             foreach ($refunds as $refund) {
                 echo "<table>";
@@ -149,10 +206,13 @@ try {
                         <td>" . htmlspecialchars(number_format($refund['remaining_amount'], 2)) . "</td>
                       </tr>";
                 echo "</tbody>";
-                echo "</table><br>";
+                echo "        </table><br>";
             }
         }
-        echo "<a href='/refund-form.php?payment_id=" . htmlspecialchars($paymentId) . "'>Back to Refund Form</a> | <a href='/transactions.php'>Back to Transactions</a>";
+        echo "        <div class='links'>";
+        echo "            <a href='/refund-form.php?payment_id=" . htmlspecialchars($paymentId) . "'>Back to Refund Form</a> | <a href='/transactions.php'>Back to Transactions</a>";
+        echo "        </div>";
+        echo "    </div>";
         echo "</body>";
         echo "</html>";
         exit;
@@ -168,17 +228,42 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Refund Payment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
+            background: white;
             padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         h1 {
-            margin-top: 0;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .top-nav {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .top-nav a:hover {
+            text-decoration: underline;
         }
 
         table {
@@ -190,29 +275,49 @@ try {
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #dee2e6;
         }
 
         th {
-            background-color: #f5f5f5;
+            background-color: #e9ecef;
             font-weight: bold;
+            color: #495057;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
 
         tr:hover {
-            background-color: #f9f9f9;
+            background-color: #e8f4f8;
         }
 
-        form {
-            margin-top: 20px;
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
         }
 
         input[type="number"] {
             width: 100%;
-            padding: 8px;
+            padding: 12px;
             margin-top: 5px;
             margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
         }
 
         button {
@@ -222,6 +327,8 @@ try {
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            width: 100%;
         }
 
         button:hover {
@@ -233,6 +340,9 @@ try {
             justify-content: center;
             align-items: center;
             margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
         }
 
         .spinner {
@@ -249,33 +359,65 @@ try {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .links {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: red;
+            padding: 20px;
+            border: 1px solid #ffcccc;
+            background-color: #fff8f8;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
-<h1>Refund Payment</h1>
+    <div class="container">
+        <div class="top-nav">
+            <a href="/transactions.php">← Back to Transactions</a>
+        </div>
 
-<div id="loading" class="loading">
-    <div class="spinner"></div>
-    <span>Loading payment details...</span>
-</div>
+        <h1>Refund Payment</h1>
 
-<!-- Payment Details Table - Will be populated by JavaScript -->
-<div id="payment-details" style="display: none;"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <span>Loading payment details...</span>
+        </div>
 
-<!-- Refund Form - Will be shown/hidden by JavaScript -->
-<form id="refund-form" method="POST" style="display: none;">
-    <input type="hidden" id="payment-id-input" name="payment_id" value="<?php echo isset($paymentId) ? htmlspecialchars($paymentId) : ''; ?>">
-    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <!-- Payment Details Table - Will be populated by JavaScript -->
+        <div id="payment-details" style="display: none;"></div>
 
-    <label for="refund-amount">Refund Amount:</label>
-    <input type="number" id="refund-amount" name="refund_amount" step="0.01" min="0.01" required>
+        <!-- Refund Form - Will be shown/hidden by JavaScript -->
+        <form id="refund-form" method="POST" style="display: none;">
+            <input type="hidden" id="payment-id-input" name="payment_id" value="<?php echo isset($paymentId) ? htmlspecialchars($paymentId) : ''; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-    <button type="submit">Submit Refund</button>
-</form>
+            <label for="refund-amount">Refund Amount:</label>
+            <input type="number" id="refund-amount" name="refund_amount" step="0.01" min="0.01" required>
 
-<div id="refund-error" style="color: red; display: none;">Refund cannot be processed because the payment status is not successful.</div>
+            <button type="submit">Submit Refund</button>
+        </form>
 
-<p><a href="/transactions.php">Back to Transactions</a></p>
+        <div id="refund-error" class="error-message" style="display: none;">Refund cannot be processed because the payment status is not successful.</div>
+
+        <div class="links">
+            <a href="/transactions.php">Back to Transactions</a>
+        </div>
+    </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -16,23 +16,64 @@ if (empty($paymentReference)) {
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 20px;
+            background-color: #f5f5f5;
         }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .top-nav {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 14px;
+        }
+
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
+
         .message {
             font-family: Arial, sans-serif;
             padding: 20px;
             border: 1px solid #ddd;
-            margin: 20px;
+            margin: 20px 0;
             text-align: center;
+            border-radius: 6px;
         }
+
         .loading {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
         }
+
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -42,88 +83,124 @@ if (empty($paymentReference)) {
             animation: spin 1s linear infinite;
             margin-right: 10px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .success { background-color: #d4edda; color: #155724; }
-        .failure, .failed { background-color: #f8d7da; color: #721c24; }
-        .expired { background-color: #fff3cd; color: #856404; }
-        .error { background-color: #fff3cd; color: #856404; }
-        .unknown { background-color: #e2e3e5; color: #383d41; }
-        .pending { background-color: #cce5ff; color: #004085; }
-        .cancelled { background-color: #e2e3e5; color: #383d41; }
+
+        .success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .failure, .failed { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .expired { background-color: #fff3cd; color: #856404; border-color: #ffeaa7; }
+        .error { background-color: #fff3cd; color: #856404; border-color: #ffeaa7; }
+        .unknown { background-color: #e2e3e5; color: #383d41; border-color: #d1ecf1; }
+        .pending { background-color: #cce5ff; color: #004085; border-color: #b8daff; }
+        .cancelled { background-color: #e2e3e5; color: #383d41; border-color: #d1ecf1; }
+
         .links {
             text-align: center;
-            margin: 20px;
-            font-family: Arial, sans-serif;
+            margin: 20px 0;
         }
+
         .links a {
             margin: 0 10px;
             text-decoration: none;
             color: #007bff;
         }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
         .details-container {
             font-family: Arial, sans-serif;
             padding: 20px;
-            border: 1px solid #ddd;
-            margin: 20px;
+            border: 1px solid #e9ecef;
+            margin: 20px 0;
             display: none;
+            background: #f8f9fa;
+            border-radius: 6px;
         }
+
+        .details-container h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
         .details-table {
             width: 100%;
             border-collapse: collapse;
         }
+
         .details-table td, .details-table th {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #dee2e6;
+            padding: 12px;
             text-align: left;
         }
+
+        .details-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+        }
+
         .details-table tr:nth-child(even) {
             background-color: #f2f2f2;
+        }
+
+        .details-table tr:hover {
+            background-color: #e8f4f8;
         }
     </style>
     <script src="js/bubble.php"></script>
 </head>
 <body>
-<?php if (empty($paymentReference)): ?>
-    <div class="message error">
-        <?php echo htmlspecialchars($message); ?>
-    </div>
-<?php else: ?>
-    <!-- Initial status message based on status parameter -->
-    <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
-        <?php
-        if ($expectedStatus == 'error'):
-            echo "Payment is error. Awaiting confirmation.";
-        elseif ($expectedStatus == 'success'):
-            echo "Payment was successful. Awaiting confirmation.";
-        else:
-            echo htmlspecialchars(ucfirst($expectedStatus) . " payment status.");
-        endif;
-        ?>
-    </div>
+    <div class="container">
+        <div class="top-nav">
+            <a href="/checkout.php">← Back to Checkout</a>
+        </div>
 
-    <!-- Loading indicator -->
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <span>Verifying payment details...</span>
-    </div>
+        <h1>Payment Result</h1>
 
-    <!-- Payment details container (hidden initially) -->
-    <div id="payment-details" class="details-container">
-        <h3>Payment Details</h3>
-        <table class="details-table">
-            <tbody id="details-body">
-                <!-- Will be populated via JavaScript -->
-            </tbody>
-        </table>
-    </div>
-<?php endif; ?>
+        <?php if (empty($paymentReference)): ?>
+            <div class="message error">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php else: ?>
+            <!-- Initial status message based on status parameter -->
+            <div id="status-message" class="message <?php echo htmlspecialchars($expectedStatus); ?>">
+                <?php
+                if ($expectedStatus == 'error'):
+                    echo "Payment is error. Awaiting confirmation.";
+                elseif ($expectedStatus == 'success'):
+                    echo "Payment was successful. Awaiting confirmation.";
+                else:
+                    echo htmlspecialchars(ucfirst($expectedStatus) . " payment status.");
+                endif;
+                ?>
+            </div>
 
-<div class="links">
-    <a href="/checkout.php">New online payment</a> | <a href="/index.php">Main menu</a> | <a href="/transactions.php">List all transactions</a>
-</div>
+            <!-- Loading indicator -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <span>Verifying payment details...</span>
+            </div>
+
+            <!-- Payment details container (hidden initially) -->
+            <div id="payment-details" class="details-container">
+                <h3>Payment Details</h3>
+                <table class="details-table">
+                    <tbody id="details-body">
+                        <!-- Will be populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
+        <div class="links">
+            <a href="/checkout.php">New online payment</a> | <a href="/index.php">Main menu</a> | <a href="/transactions.php">List all transactions</a>
+        </div>
+    </div>
 
 <?php if (!empty($paymentReference)): ?>
 <script>

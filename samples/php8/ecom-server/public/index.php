@@ -7,7 +7,7 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Store - Home</title>
+    <title>Home - Kody Payment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -164,6 +164,19 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
             margin: 5px 0;
             color: #495057;
         }
+
+        .section-title {
+            color: #2c5aa0;
+            font-size: 20px;
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -171,16 +184,35 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
         <h1>Welcome to the Kody Store Demo</h1>
         <h3>Store ID: <span id="storeIdDisplay"><?php echo htmlspecialchars($config['store_id']); ?></span></h3>
 
+        <!-- Online Payments -->
+        <h2 class="section-title">Online Payments</h2>
         <a href="checkout.php" class="option">
             <h2>Online Payment Demo</h2>
             <p>Experience the online payment process</p>
         </a>
 
+        <!-- Terminal Payments -->
+        <h2 class="section-title">Terminal Payments</h2>
         <a href="terminals.php" class="option">
-            <h2>Payment Terminals</h2>
-            <p>View all payment terminals assigned to the store</p>
+            <h2>Terminals</h2>
+            <p>View all terminals assigned to the store</p>
         </a>
 
+        <!-- Token Management -->
+        <h2 class="section-title">Token Management</h2>
+
+        <a href="token-payment.php" class="option">
+            <h2>Token Payment</h2>
+            <p>Process payments using saved payment tokens</p>
+        </a>
+
+        <a href="token-payment-tokens.php" class="option">
+            <h2>Card Tokens</h2>
+            <p>View all saved card tokens in the store</p>
+        </a>
+
+        <!-- History & Logs -->
+        <h2 class="section-title">History & Logs</h2>
         <a href="transactions.php" class="option">
             <h2>All Transactions</h2>
             <p>View all transactions made in the store</p>

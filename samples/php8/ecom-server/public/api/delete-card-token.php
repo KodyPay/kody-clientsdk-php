@@ -10,7 +10,6 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Move use statements to the top
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
 use Com\Kodypay\Grpc\Ecom\V1\DeleteCardTokenRequest;
 use Grpc\ChannelCredentials;

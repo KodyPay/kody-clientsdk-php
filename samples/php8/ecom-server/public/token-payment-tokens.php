@@ -247,11 +247,6 @@
                 return;
             }
 
-            if (payerReference === currentPayerReference) {
-                // Don't reload if same payer reference
-                return;
-            }
-
             currentPayerReference = payerReference;
             const container = document.getElementById('tokens-container');
 
@@ -314,19 +309,19 @@
 
                         // Show appropriate buttons based on token status
                         let actionButtons = '<div class="button-group">';
-                        
+
                         // Payment button - only available for READY tokens
                         if (token.status === 2) { // READY status
                             actionButtons += `<button onclick="useTokenForPayment('${token.payment_token}')" class="payment-btn">Use for Payment</button>`;
                         } else {
                             actionButtons += '<span class="card-info">Not available</span>';
                         }
-                        
+
                         // Delete button - available for READY, PENDING, and FAILED tokens (not DELETED or PENDING_DELETE)
                         if (token.status !== 3 && token.status !== 4) { // Not DELETED or PENDING_DELETE
                             actionButtons += `<button onclick="deleteToken('${token.token_id}')" class="delete-btn">Delete</button>`;
                         }
-                        
+
                         actionButtons += '</div>';
                         const actionButton = actionButtons;
 
@@ -437,7 +432,7 @@
                 .catch(error => {
                     console.error('Error deleting token:', error);
                     alert('Error deleting token: ' + error.message);
-                    
+
                     // Re-enable the button on error
                     deleteButtons.forEach(btn => {
                         btn.disabled = false;

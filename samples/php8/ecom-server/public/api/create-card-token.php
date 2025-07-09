@@ -315,14 +315,6 @@ try {
         exit;
     }
 
-    // Remove fields that don't belong to CreateTokenRequest API
-    $invalidFields = ['payment_reference', 'paymentUrl'];
-    foreach ($invalidFields as $field) {
-        if (isset($input[$field])) {
-            unset($input[$field]);
-        }
-    }
-
     $result = createCardToken($input, $config);
 
     ob_end_clean();

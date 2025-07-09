@@ -176,6 +176,11 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
             <p>Experience the online payment process</p>
         </a>
 
+        <a href="token-payment.php" class="option">
+            <h2>Token Payment</h2>
+            <p>Process payments using saved payment tokens</p>
+        </a>
+
         <a href="terminals.php" class="option">
             <h2>Payment Terminals</h2>
             <p>View all payment terminals assigned to the store</p>

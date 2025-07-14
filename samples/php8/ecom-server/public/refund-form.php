@@ -320,7 +320,8 @@ try {
             box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
         }
 
-        button {
+        form button,
+        button[type="submit"] {
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -331,8 +332,131 @@ try {
             width: 100%;
         }
 
-        button:hover {
+        form button:hover,
+        button[type="submit"]:hover {
             background-color: #45a049;
+        }
+
+        /* SDK Section Styles */
+        .developer-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .developer-section h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .code-section {
+            margin: 30px 0;
+        }
+
+        .code-section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .tabs {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-right: 4px;
+            border-radius: 4px 4px 0 0;
+            color: #555;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .tab-button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .code-block {
+            position: relative;
+            background: #2d3748;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            color: #e2e8f0;
+            background: #2d3748;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 10;
+            transition: background-color 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .sdk-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .sdk-info h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+
+        .sdk-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .section-divider {
+            border-top: 1px solid #ddd;
+            margin: 40px 0;
         }
 
         .loading {
@@ -416,6 +540,269 @@ try {
 
         <div class="links">
             <a href="/transactions.php">Back to Transactions</a>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Payment Refunds</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyEcomPaymentsService</code></p>
+                <p><strong>Method:</strong> <code>Refund()</code></p>
+                <p><strong>Request:</strong> <code>RefundRequest</code></p>
+                <p><strong>Response:</strong> <code>RefundResponse</code> (streaming)</p>
+            </div>
+
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\RefundRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create RefundRequest and set required fields
+$request = new RefundRequest();
+$request->setStoreId('your-store-id');
+$request->setPaymentId('payment-id-to-refund');
+$request->setAmount(10.50); // Refund amount in major currency units
+
+// Step 4: Optional fields
+$request->setRefundReference('refund-ref-' . uniqid()); // Optional refund reference
+
+// Step 5: Call Refund() method and get streaming response
+$call = $client->Refund($request, $metadata);
+
+// Step 6: Process streaming responses
+foreach ($call->responses() as $response) {
+    echo "Refund Status: " . $response->getStatus() . PHP_EOL;
+    echo "Payment ID: " . $response->getPaymentId() . PHP_EOL;
+    echo "Payment Transaction ID: " . $response->getPaymentTransactionId() . PHP_EOL;
+    echo "Date Created: " . date('Y-m-d H:i:s', $response->getDateCreated()->getSeconds()) . PHP_EOL;
+    echo "Total Paid Amount: " . number_format($response->getTotalPaidAmount(), 2) . PHP_EOL;
+    echo "Total Amount Requested: " . number_format($response->getTotalAmountRequested(), 2) . PHP_EOL;
+    echo "Total Amount Refunded: " . number_format($response->getTotalAmountRefunded(), 2) . PHP_EOL;
+    echo "Remaining Amount: " . number_format($response->getRemainingAmount(), 2) . PHP_EOL;
+    echo "---" . PHP_EOL;
+}
+
+// Step 7: Check for any errors
+$status = $call->getStatus();
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.RefundRequest;
+import com.kodypay.grpc.ecom.v1.RefundResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+import java.util.Iterator;
+
+public class RefundExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create RefundRequest and set required fields
+        RefundRequest request = RefundRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setPaymentId("payment-id-to-refund")
+            .setAmount(10.50) // Refund amount in major currency units
+            .setRefundReference("refund-ref-" + System.currentTimeMillis()) // Optional
+            .build();
+
+        // Step 4: Call Refund() method and get streaming response
+        Iterator&lt;RefundResponse&gt; responses = client.refund(request);
+
+        // Step 5: Process streaming responses
+        while (responses.hasNext()) {
+            RefundResponse response = responses.next();
+
+            System.out.println("Refund Status: " + response.getStatus());
+            System.out.println("Payment ID: " + response.getPaymentId());
+            System.out.println("Payment Transaction ID: " + response.getPaymentTransactionId());
+            System.out.println("Date Created: " + response.getDateCreated());
+            System.out.println("Total Paid Amount: " + String.format("%.2f", response.getTotalPaidAmount()));
+            System.out.println("Total Amount Requested: " + String.format("%.2f", response.getTotalAmountRequested()));
+            System.out.println("Total Amount Refunded: " + String.format("%.2f", response.getTotalAmountRefunded()));
+            System.out.println("Remaining Amount: " + String.format("%.2f", response.getRemainingAmount()));
+            System.out.println("---");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import time
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
+
+def process_refund():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create RefundRequest and set required fields
+    request = kody_model.RefundRequest(
+        store_id="your-store-id",
+        payment_id="payment-id-to-refund",
+        amount=10.50,  # Refund amount in major currency units
+        refund_reference=f"refund-ref-{int(time.time())}"  # Optional
+    )
+
+    # Step 4: Call Refund() method and get streaming response
+    responses = client.Refund(request, metadata=metadata)
+
+    # Step 5: Process streaming responses
+    for response in responses:
+        print(f"Refund Status: {response.status}")
+        print(f"Payment ID: {response.payment_id}")
+        print(f"Payment Transaction ID: {response.payment_transaction_id}")
+        print(f"Date Created: {response.date_created}")
+        print(f"Total Paid Amount: {response.total_paid_amount:.2f}")
+        print(f"Total Amount Requested: {response.total_amount_requested:.2f}")
+        print(f"Total Amount Refunded: {response.total_amount_refunded:.2f}")
+        print(f"Remaining Amount: {response.remaining_amount:.2f}")
+        print("---")
+
+if __name__ == "__main__":
+    try:
+        process_refund()
+    except grpc.RpcError as e:
+        print(f"gRPC Error: {e.code()} - {e.details()}")
+    except Exception as e:
+        print(f"Exception: {e}")</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create RefundRequest and set required fields
+        var request = new RefundRequest
+        {
+            StoreId = "your-store-id",
+            PaymentId = "payment-id-to-refund",
+            Amount = 10.50, // Refund amount in major currency units
+            RefundReference = $"refund-ref-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}" // Optional
+        };
+
+        try
+        {
+            // Step 5: Call Refund() method and get streaming response
+            using var call = client.Refund(request, metadata);
+
+            // Step 6: Process streaming responses
+            await foreach (var response in call.ResponseStream.ReadAllAsync())
+            {
+                Console.WriteLine($"Refund Status: {response.Status}");
+                Console.WriteLine($"Payment ID: {response.PaymentId}");
+                Console.WriteLine($"Payment Transaction ID: {response.PaymentTransactionId}");
+                Console.WriteLine($"Date Created: {response.DateCreated}");
+                Console.WriteLine($"Total Paid Amount: {response.TotalPaidAmount:F2}");
+                Console.WriteLine($"Total Amount Requested: {response.TotalAmountRequested:F2}");
+                Console.WriteLine($"Total Amount Refunded: {response.TotalAmountRefunded:F2}");
+                Console.WriteLine($"Remaining Amount: {response.RemainingAmount:F2}");
+                Console.WriteLine("---");
+            }
+        }
+        catch (RpcException ex)
+        {
+            Console.WriteLine($"gRPC Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -596,6 +983,72 @@ try {
 
         paymentDetailsElement.innerHTML = html;
     }
+
+    // SDK section functions - moved outside DOMContentLoaded to be globally accessible
+    function copyCode(elementId) {
+        const codeElement = document.getElementById(elementId);
+        const code = codeElement.textContent || codeElement.innerText;
+
+        navigator.clipboard.writeText(code).then(function() {
+            // Visual feedback
+            const button = codeElement.parentElement.querySelector('.copy-btn');
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Visual feedback for fallback
+            const button = codeElement.parentElement.querySelector('.copy-btn');
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    function showTab(language) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // Remove active class from all buttons
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => button.classList.remove('active'));
+
+        // Show selected tab content
+        const selectedContent = document.getElementById(language + '-content');
+        if (selectedContent) {
+            selectedContent.classList.add('active');
+        }
+
+        // Add active class to clicked button
+        const selectedButton = document.querySelector(`[onclick="showTab('${language}')"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('active');
+        }
+    }
+
+    // Initialize SDK section - show PHP tab by default
+    document.addEventListener('DOMContentLoaded', function() {
+        showTab('php');
+    });
 </script>
 <script src="js/bubble.php"></script>
 </body>

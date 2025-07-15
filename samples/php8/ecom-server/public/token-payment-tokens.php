@@ -358,6 +358,7 @@
         }
     </style>
     <script src="js/bubble.php"></script>
+    <script src="js/sdk-common.php"></script>
     <script>
         let currentPayerReference = '';
 
@@ -585,43 +586,6 @@
             }
         }
 
-        function copyCode(elementId) {
-            const codeElement = document.getElementById(elementId);
-            const code = codeElement.textContent || codeElement.innerText;
-
-            navigator.clipboard.writeText(code).then(function() {
-                // Visual feedback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = code;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                // Visual feedback for fallback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            });
-        }
 
         function showTab(language, section) {
             // Hide all tab contents for this section
@@ -1351,43 +1315,6 @@ class Program
             }
         }
 
-        function copyCode(elementId) {
-            const codeElement = document.getElementById(elementId);
-            const code = codeElement.textContent || codeElement.innerText;
-
-            navigator.clipboard.writeText(code).then(function() {
-                // Visual feedback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = code;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                // Visual feedback for fallback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            });
-        }
 
         function showTab(language, section) {
             // Hide all tab contents for this section
@@ -1412,11 +1339,11 @@ class Program
         }
 
         // Initialize page
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Show PHP tabs by default for both sections
             showTab('php', 'get-tokens');
             showTab('php', 'delete-token');
-        };
+        });
     </script>
 </body>
 </html>

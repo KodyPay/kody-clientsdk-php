@@ -394,6 +394,7 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             margin: 40px 0;
         }
     </style>
+    <script src="js/sdk-common.php"></script>
 </head>
 <body>
     <div class="container">
@@ -801,8 +802,6 @@ class Program
             // Add event listener to regenerate button
             regenerateButton.addEventListener('click', regenerateRandomValues);
 
-            // Initialize SDK section - show PHP tab by default
-            showTab('php');
 
             createTokenForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -931,66 +930,6 @@ class Program
             });
         });
 
-        // SDK section functions - globally accessible
-        function copyCode(elementId) {
-            const codeElement = document.getElementById(elementId);
-            const code = codeElement.textContent || codeElement.innerText;
-
-            navigator.clipboard.writeText(code).then(function() {
-                // Visual feedback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = code;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                // Visual feedback for fallback
-                const button = codeElement.parentElement.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
-
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            });
-        }
-
-        function showTab(language) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Remove active class from all buttons
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => button.classList.remove('active'));
-
-            // Show selected tab content
-            const selectedContent = document.getElementById(language + '-content');
-            if (selectedContent) {
-                selectedContent.classList.add('active');
-            }
-
-            // Add active class to clicked button
-            const selectedButton = document.querySelector(`[onclick="showTab('${language}')"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('active');
-            }
-        }
     </script>
 </body>
 </html>

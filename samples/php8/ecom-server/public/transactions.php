@@ -199,8 +199,11 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
             text-decoration: none;
             color: #007bff;
         }
+
     </style>
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/bubble.php"></script>
+    <script src="js/sdk-common.php"></script>
 </head>
 <body>
     <div class="container">
@@ -223,6 +226,324 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
 
         <div class="links">
             <a href="/index.php">Main menu</a>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Get Payments</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyEcomPaymentsService</code></p>
+                <p><strong>Method:</strong> <code>GetPayments()</code></p>
+                <p><strong>Request:</strong> <code>GetPaymentsRequest</code></p>
+                <p><strong>Response:</strong> <code>GetPaymentsResponse</code></p>
+            </div>
+
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest;
+use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest\PageCursor;
+use Com\Kodypay\Grpc\Ecom\V1\GetPaymentsRequest\Filter;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create GetPaymentsRequest and set required fields
+$request = new GetPaymentsRequest();
+$request->setStoreId('your-store-id');
+
+// Step 4: Set pagination (optional)
+$pageCursor = new PageCursor();
+$pageCursor->setPage(0); // First page
+$pageCursor->setPageSize(20); // 20 payments per page
+$request->setPageCursor($pageCursor);
+
+// Step 5: Set filters (optional)
+$filter = new Filter();
+$filter->setOrderId('order-123'); // Filter by specific order ID
+// You can also filter by created_before timestamp
+$request->setFilter($filter);
+
+// Step 6: Call GetPayments() method and wait for response
+list($response, $status) = $client->GetPayments($request, $metadata)->wait();
+
+// Step 7: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 8: Process response
+if ($response->hasResponse()) {
+    $responseData = $response->getResponse();
+    $payments = $responseData->getPayments();
+
+    echo "Found " . $responseData->getTotal() . " total payments:" . PHP_EOL;
+    echo "Showing " . count($payments) . " payments on this page:" . PHP_EOL;
+
+    foreach ($payments as $payment) {
+        echo "Payment ID: " . $payment->getPaymentId() . PHP_EOL;
+        echo "Status: " . $payment->getStatus() . PHP_EOL;
+        echo "Created: " . $payment->getDateCreated()->toDateTime()->format('Y-m-d H:i:s') . PHP_EOL;
+
+        if ($payment->hasSaleData()) {
+            $saleData = $payment->getSaleData();
+            echo "Amount: " . $saleData->getAmountMinorUnits() . " " . $saleData->getCurrency() . PHP_EOL;
+            echo "Order ID: " . $saleData->getOrderId() . PHP_EOL;
+        }
+        echo "---" . PHP_EOL;
+    }
+} else if ($response->hasError()) {
+    $error = $response->getError();
+    echo "API Error: " . $error->getMessage() . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.GetPaymentsRequest;
+import com.kodypay.grpc.ecom.v1.GetPaymentsResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
+public class GetPaymentsExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create GetPaymentsRequest and set required fields
+        var pageCursor = GetPaymentsRequest.PageCursor.newBuilder()
+            .setPage(0) // First page
+            .setPageSize(20) // 20 payments per page
+            .build();
+
+        var filter = GetPaymentsRequest.Filter.newBuilder()
+            .setOrderId("order-123") // Filter by specific order ID
+            .build();
+
+        GetPaymentsRequest request = GetPaymentsRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setPageCursor(pageCursor)
+            .setFilter(filter)
+            .build();
+
+        // Step 4: Call GetPayments() method and get response
+        GetPaymentsResponse response = client.getPayments(request);
+
+        // Step 5: Process response
+        if (response.hasResponse()) {
+            var responseData = response.getResponse();
+            System.out.println("Found " + responseData.getTotal() + " total payments:");
+            System.out.println("Showing " + responseData.getPaymentsCount() + " payments on this page:");
+
+            responseData.getPaymentsList().forEach(payment -> {
+                System.out.println("Payment ID: " + payment.getPaymentId());
+                System.out.println("Status: " + payment.getStatus());
+                System.out.println("Created: " + payment.getDateCreated());
+
+                if (payment.hasSaleData()) {
+                    var saleData = payment.getSaleData();
+                    System.out.println("Amount: " + saleData.getAmountMinorUnits() + " " + saleData.getCurrency());
+                    System.out.println("Order ID: " + saleData.getOrderId());
+                }
+                System.out.println("---");
+            });
+        } else if (response.hasError()) {
+            var error = response.getError();
+            System.out.println("API Error: " + error.getMessage());
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
+
+def get_payments():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create GetPaymentsRequest and set required fields
+    page_cursor = kody_model.GetPaymentsRequest.PageCursor(
+        page=0,  # First page
+        page_size=20  # 20 payments per page
+    )
+
+    filter_obj = kody_model.GetPaymentsRequest.Filter(
+        order_id="order-123"  # Filter by specific order ID
+    )
+
+    request = kody_model.GetPaymentsRequest(
+        store_id="your-store-id",
+        page_cursor=page_cursor,
+        filter=filter_obj
+    )
+
+    # Step 4: Call GetPayments() method and get response
+    response = client.GetPayments(request, metadata=metadata)
+
+    # Step 5: Process response
+    if response.HasField("response"):
+        response_data = response.response
+        print(f"Found {response_data.total} total payments:")
+        print(f"Showing {len(response_data.payments)} payments on this page:")
+
+        for payment in response_data.payments:
+            print(f"Payment ID: {payment.payment_id}")
+            print(f"Status: {payment.status}")
+            print(f"Created: {payment.date_created}")
+
+            if payment.HasField("sale_data"):
+                sale_data = payment.sale_data
+                print(f"Amount: {sale_data.amount_minor_units} {sale_data.currency}")
+                print(f"Order ID: {sale_data.order_id}")
+            print("---")
+    elif response.HasField("error"):
+        error = response.error
+        print(f"API Error: {error.message}")
+
+if __name__ == "__main__":
+    get_payments()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create GetPaymentsRequest and set required fields
+        var request = new GetPaymentsRequest
+        {
+            StoreId = "your-store-id",
+            PageCursor = new GetPaymentsRequest.Types.PageCursor
+            {
+                Page = 0, // First page
+                PageSize = 20 // 20 payments per page
+            },
+            Filter = new GetPaymentsRequest.Types.Filter
+            {
+                OrderId = "order-123" // Filter by specific order ID
+            }
+        };
+
+        // Step 5: Call GetPayments() method and get response
+        var response = await client.GetPaymentsAsync(request, metadata);
+
+        // Step 6: Process response
+        if (response.ResponseCase == GetPaymentsResponse.ResponseOneofCase.Response)
+        {
+            var responseData = response.Response;
+            Console.WriteLine($"Found {responseData.Total} total payments:");
+            Console.WriteLine($"Showing {responseData.Payments.Count} payments on this page:");
+
+            foreach (var payment in responseData.Payments)
+            {
+                Console.WriteLine($"Payment ID: {payment.PaymentId}");
+                Console.WriteLine($"Status: {payment.Status}");
+                Console.WriteLine($"Created: {payment.DateCreated}");
+
+                if (payment.SaleData != null)
+                {
+                    var saleData = payment.SaleData;
+                    Console.WriteLine($"Amount: {saleData.AmountMinorUnits} {saleData.Currency}");
+                    Console.WriteLine($"Order ID: {saleData.OrderId}");
+                }
+                Console.WriteLine("---");
+            }
+        }
+        else if (response.ResponseCase == GetPaymentsResponse.ResponseOneofCase.Error)
+        {
+            var error = response.Error;
+            Console.WriteLine($"API Error: {error.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -392,7 +713,9 @@ $currentPage = isset($_GET['page']) ? max(0, intval($_GET['page'])) : 0;
                 div.textContent = text;
                 return div.innerHTML;
             }
+
         });
+
     </script>
 </body>
 </html>

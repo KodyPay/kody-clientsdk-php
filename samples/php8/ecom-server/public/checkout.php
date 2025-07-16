@@ -117,7 +117,8 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             background-color: #fafafa;
         }
 
-        button {
+        form button,
+        button[type="submit"] {
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -128,7 +129,8 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             width: 100%;
         }
 
-        button:hover {
+        form button:hover,
+        button[type="submit"]:hover {
             background-color: #45a049;
         }
 
@@ -182,7 +184,10 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             list-style-type: disc;
             margin-left: 20px;
         }
+
     </style>
+    <link rel="stylesheet" href="css/sdk-common.php">
+    <script src="js/sdk-common.php"></script>
 </head>
 <body>
     <div class="container">
@@ -268,6 +273,269 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             <p>For testing purposes, you can use test cards available in the <a href="https://api-docs.kody.com/docs/getting-started/test-cards" target="_blank">Test Cards Documentation</a>.</p>
 
             <p>For more detailed information about the API, please refer to the <a href="https://api-docs.kody.com/docs/payments-api/ecom-payments/#1-initiate-payment" target="_blank">Kody Payments API Documentation</a>.</p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Payment Initiation</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyEcomPaymentsService</code></p>
+                <p><strong>Method:</strong> <code>InitiatePayment()</code></p>
+                <p><strong>Request:</strong> <code>PaymentInitiationRequest</code></p>
+                <p><strong>Response:</strong> <code>PaymentInitiationResponse</code></p>
+            </div>
+
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\PaymentInitiationRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create PaymentInitiationRequest and set required fields
+$request = new PaymentInitiationRequest();
+$request->setStoreId('your-store-id');
+$request->setPaymentReference('unique-payment-ref-' . uniqid());
+$request->setAmountMinorUnits(2000); // £20.00
+$request->setCurrency('GBP');
+$request->setOrderId('order-' . uniqid());
+$request->setReturnUrl('https://your-domain.com/return');
+
+// Step 4: Optional fields
+$request->setPayerEmailAddress('customer@example.com');
+$request->setPayerIpAddress($_SERVER['REMOTE_ADDR']);
+$request->setPayerLocale('en_GB');
+
+// Step 5: Call InitiatePayment() method and wait for response
+list($response, $status) = $client->InitiatePayment($request, $metadata)->wait();
+
+// Step 6: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 7: Process response
+if ($response->hasResponse()) {
+    $responseData = $response->getResponse();
+    echo "Payment ID: " . $responseData->getPaymentId() . PHP_EOL;
+    echo "Payment URL: " . $responseData->getPaymentUrl() . PHP_EOL;
+
+    // Redirect user to payment URL
+    header('Location: ' . $responseData->getPaymentUrl());
+} else if ($response->hasError()) {
+    $error = $response->getError();
+    echo "API Error: " . $error->getMessage() . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.PaymentInitiationRequest;
+import com.kodypay.grpc.ecom.v1.PaymentInitiationResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
+public class InitiatePaymentExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create PaymentInitiationRequest and set required fields
+        PaymentInitiationRequest request = PaymentInitiationRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setPaymentReference("unique-payment-ref-" + System.currentTimeMillis())
+            .setAmountMinorUnits(2000) // £20.00
+            .setCurrency("GBP")
+            .setOrderId("order-" + System.currentTimeMillis())
+            .setReturnUrl("https://your-domain.com/return")
+            .setPayerEmailAddress("customer@example.com")
+            .setPayerLocale("en_GB")
+            .build();
+
+        // Step 4: Call InitiatePayment() method and get response
+        PaymentInitiationResponse response = client.initiatePayment(request);
+
+        // Step 5: Process response
+        if (response.hasResponse()) {
+            var responseData = response.getResponse();
+            System.out.println("Payment ID: " + responseData.getPaymentId());
+            System.out.println("Payment URL: " + responseData.getPaymentUrl());
+
+            // Redirect user to payment URL
+            // response.sendRedirect(responseData.getPaymentUrl());
+        } else if (response.hasError()) {
+            var error = response.getError();
+            System.out.println("API Error: " + error.getMessage());
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import time
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
+
+def initiate_payment():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create PaymentInitiationRequest and set required fields
+    request = kody_model.PaymentInitiationRequest(
+        store_id="your-store-id",
+        payment_reference=f"unique-payment-ref-{int(time.time())}",
+        amount_minor_units=2000,  # £20.00
+        currency="GBP",
+        order_id=f"order-{int(time.time())}",
+        return_url="https://your-domain.com/return",
+        payer_email_address="customer@example.com",
+        payer_locale="en_GB"
+    )
+
+    # Step 4: Call InitiatePayment() method and get response
+    response = client.InitiatePayment(request, metadata=metadata)
+
+    # Step 5: Process response
+    if response.HasField("response"):
+        response_data = response.response
+        print(f"Payment ID: {response_data.payment_id}")
+        print(f"Payment URL: {response_data.payment_url}")
+
+        # Redirect user to payment URL
+        # webbrowser.open(response_data.payment_url)
+    elif response.HasField("error"):
+        error = response.error
+        print(f"API Error: {error.message}")
+
+if __name__ == "__main__":
+    initiate_payment()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create PaymentInitiationRequest and set required fields
+        var request = new PaymentInitiationRequest
+        {
+            StoreId = "your-store-id",
+            PaymentReference = $"unique-payment-ref-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
+            AmountMinorUnits = 2000, // £20.00
+            Currency = "GBP",
+            OrderId = $"order-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
+            ReturnUrl = "https://your-domain.com/return",
+            PayerEmailAddress = "customer@example.com",
+            PayerLocale = "en_GB"
+        };
+
+        // Step 5: Call InitiatePayment() method and get response
+        var response = await client.InitiatePaymentAsync(request, metadata);
+
+        // Step 6: Process response
+        if (response.ResponseCase == PaymentInitiationResponse.ResponseOneofCase.Response)
+        {
+            var responseData = response.Response;
+            Console.WriteLine($"Payment ID: {responseData.PaymentId}");
+            Console.WriteLine($"Payment URL: {responseData.PaymentUrl}");
+
+            // Redirect user to payment URL
+            // Response.Redirect(responseData.PaymentUrl);
+        }
+        else if (response.ResponseCase == PaymentInitiationResponse.ResponseOneofCase.Error)
+        {
+            var error = response.Error;
+            Console.WriteLine($"API Error: {error.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

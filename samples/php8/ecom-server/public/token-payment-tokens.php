@@ -224,6 +224,7 @@
             color: #007bff;
         }
 
+
         .card-info {
             font-size: 12px;
             color: #666;
@@ -234,8 +235,110 @@
             color: #888;
             font-style: italic;
         }
+
+        /* Payment Form Styles */
+        .payment-form-section {
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: none;
+        }
+
+        .payment-form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .form-actions {
+            margin-top: 20px;
+        }
+
+        .pay-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .pay-button:hover {
+            background-color: #218838;
+        }
+
+        .pay-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .cancel-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .cancel-button:hover {
+            background-color: #5a6268;
+        }
+
+        .payment-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .payment-result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .payment-result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
     </style>
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/bubble.php"></script>
+    <script src="js/sdk-common.php"></script>
     <script>
         let currentPayerReference = '';
 
@@ -387,8 +490,101 @@
         }
 
         function useTokenForPayment(paymentToken) {
-            // Redirect to token payment page with the selected token
-            window.location.href = `token-payment-tokens.php?payment_token=${encodeURIComponent(paymentToken)}`;
+            // Show the payment form section
+            document.getElementById('payment-form-section').style.display = 'block';
+
+            // Set the payment token in the form
+            document.getElementById('payment-token').value = paymentToken;
+
+            // Generate a unique payment reference
+            document.getElementById('payment-reference').value = 'payment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Scroll to the payment form
+            document.getElementById('payment-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('payment-form-section').style.display = 'none';
+            document.getElementById('payment-result').style.display = 'none';
+            document.getElementById('payment-form').reset();
+        }
+
+        function handlePaymentSubmit(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payButton = document.getElementById('pay-button');
+            const resultDiv = document.getElementById('payment-result');
+
+            // Disable the pay button and show loading
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+            resultDiv.style.display = 'none';
+
+            // Convert FormData to JSON
+            const paymentData = {};
+            formData.forEach((value, key) => {
+                paymentData[key] = value;
+            });
+
+            // Convert amount to integer
+            paymentData.amount_minor_units = parseInt(paymentData.amount_minor_units);
+
+            fetch('api/pay-with-token.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => {
+                        throw new Error(error.error || 'Payment failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Payment successful
+                    resultDiv.className = 'payment-result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Payment Successful!</h3>
+                        <p><strong>Payment ID:</strong> ${data.payment_id}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        ${data.sale_data ? `
+                            <p><strong>Amount:</strong> ${(data.sale_data.amount_minor_units / 100).toFixed(2)} ${data.sale_data.currency}</p>
+                            <p><strong>Payment Reference:</strong> ${data.sale_data.payment_reference}</p>
+                            ${data.sale_data.order_id ? `<p><strong>Order ID:</strong> ${data.sale_data.order_id}</p>` : ''}
+                        ` : ''}
+                        ${data.payment_data ? `
+                            <p><strong>PSP Reference:</strong> ${data.payment_data.psp_reference}</p>
+                            <p><strong>Payment Method:</strong> ${data.payment_data.payment_method}</p>
+                            <p><strong>Auth Status:</strong> ${data.payment_data.auth_status}</p>
+                            ${data.payment_data.card ? `<p><strong>Card:</strong> **** ${data.payment_data.card.card_last_4_digits}</p>` : ''}
+                        ` : ''}
+                        <p><strong>Date:</strong> ${data.date_created || 'N/A'}</p>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                resultDiv.className = 'payment-result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Payment Failed</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                `;
+            })
+            .finally(() => {
+                // Re-enable the pay button
+                payButton.disabled = false;
+                payButton.textContent = 'Process Payment';
+                resultDiv.style.display = 'block';
+            });
         }
 
         function deleteToken(tokenId) {
@@ -462,6 +658,8 @@
                 fetchTokens();
             }
         }
+
+
     </script>
 </head>
 <body>
@@ -485,6 +683,843 @@
         <div class="links">
             <a href="/index.php">Main menu</a>
         </div>
+
+        <!-- Payment Form Section -->
+        <div id="payment-form-section" class="payment-form-section">
+            <h2>💳 Pay with Selected Token</h2>
+            <form id="payment-form" onsubmit="handlePaymentSubmit(event)">
+                <div class="form-group">
+                    <label for="payment-token">Payment Token:</label>
+                    <input type="text" id="payment-token" name="payment_token" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount (minor units):</label>
+                    <input type="number" id="amount" name="amount_minor_units" min="1" step="1" required>
+                    <small>Enter amount in minor units (e.g., 2000 for £20.00)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="currency">Currency:</label>
+                    <select id="currency" name="currency" required>
+                        <option value="GBP">GBP - British Pound</option>
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="HKD">HKD - Hong Kong Dollar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-reference">Payment Reference:</label>
+                    <input type="text" id="payment-reference" name="payment_reference" required>
+                    <small>Your unique reference for this payment</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="order-id">Order ID (optional):</label>
+                    <input type="text" id="order-id" name="order_id">
+                    <small>Your identifier for the order</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="payer-statement">Payer Statement (optional):</label>
+                    <input type="text" id="payer-statement" name="payer_statement" maxlength="22">
+                    <small>Text to appear on payer's bank statement (max 22 characters)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="pay-button" id="pay-button">Process Payment</button>
+                    <button type="button" class="cancel-button" onclick="hidePaymentForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div id="payment-result" class="payment-result"></div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Token Management</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyEcomPaymentsService</code></p>
+                <p><strong>Methods:</strong> <code>GetCardTokens()</code>, <code>DeleteCardToken()</code></p>
+                <p><strong>Requests:</strong> <code>GetCardTokensRequest</code>, <code>DeleteCardTokenRequest</code></p>
+                <p><strong>Responses:</strong> <code>GetCardTokensResponse</code>, <code>DeleteCardTokenResponse</code></p>
+            </div>
+
+            <div class="code-section" id="get-tokens-section">
+                <h3>Get Card Tokens - SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\GetCardTokensRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create GetCardTokensRequest and set required fields
+$request = new GetCardTokensRequest();
+$request->setStoreId('your-store-id');
+$request->setPayerReference('user123'); // The payer for whom to list tokens
+
+// Step 4: Call GetCardTokens() method and wait for response
+list($response, $status) = $client->GetCardTokens($request, $metadata)->wait();
+
+// Step 5: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 6: Process response
+if ($response->hasResponse()) {
+    $responseData = $response->getResponse();
+    $tokens = $responseData->getTokens();
+
+    echo "Found " . count($tokens) . " tokens:" . PHP_EOL;
+    foreach ($tokens as $token) {
+        echo "Token ID: " . $token->getTokenId() . PHP_EOL;
+        echo "Payment Token: " . $token->getPaymentToken() . PHP_EOL;
+        echo "Status: " . $token->getStatus() . PHP_EOL;
+        echo "Card: " . $token->getPaymentMethod() . " **** " . $token->getCardLast4Digits() . PHP_EOL;
+        echo "---" . PHP_EOL;
+    }
+} else if ($response->hasError()) {
+    $error = $response->getError();
+    echo "API Error: " . $error->getMessage() . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.GetCardTokensRequest;
+import com.kodypay.grpc.ecom.v1.GetCardTokensResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
+public class GetCardTokensExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create GetCardTokensRequest and set required fields
+        GetCardTokensRequest request = GetCardTokensRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setPayerReference("user123") // The payer for whom to list tokens
+            .build();
+
+        // Step 4: Call GetCardTokens() method and get response
+        GetCardTokensResponse response = client.getCardTokens(request);
+
+        // Step 5: Process response
+        if (response.hasResponse()) {
+            var responseData = response.getResponse();
+            System.out.println("Found " + responseData.getTokensCount() + " tokens:");
+
+            responseData.getTokensList().forEach(token -> {
+                System.out.println("Token ID: " + token.getTokenId());
+                System.out.println("Payment Token: " + token.getPaymentToken());
+                System.out.println("Status: " + token.getStatus());
+                System.out.println("Card: " + token.getPaymentMethod() + " **** " + token.getCardLast4Digits());
+                System.out.println("---");
+            });
+        } else if (response.hasError()) {
+            var error = response.getError();
+            System.out.println("API Error: " + error.getMessage());
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
+
+def get_card_tokens():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create GetCardTokensRequest and set required fields
+    request = kody_model.GetCardTokensRequest(
+        store_id="your-store-id",
+        payer_reference="user123"  # The payer for whom to list tokens
+    )
+
+    # Step 4: Call GetCardTokens() method and get response
+    response = client.GetCardTokens(request, metadata=metadata)
+
+    # Step 5: Process response
+    if response.HasField("response"):
+        response_data = response.response
+        print(f"Found {len(response_data.tokens)} tokens:")
+
+        for token in response_data.tokens:
+            print(f"Token ID: {token.token_id}")
+            print(f"Payment Token: {token.payment_token}")
+            print(f"Status: {token.status}")
+            print(f"Card: {token.payment_method} **** {token.card_last_4_digits}")
+            print("---")
+    elif response.HasField("error"):
+        error = response.error
+        print(f"API Error: {error.message}")
+
+if __name__ == "__main__":
+    get_card_tokens()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create GetCardTokensRequest and set required fields
+        var request = new GetCardTokensRequest
+        {
+            StoreId = "your-store-id",
+            PayerReference = "user123" // The payer for whom to list tokens
+        };
+
+        // Step 5: Call GetCardTokens() method and get response
+        var response = await client.GetCardTokensAsync(request, metadata);
+
+        // Step 6: Process response
+        if (response.ResponseCase == GetCardTokensResponse.ResponseOneofCase.Response)
+        {
+            var responseData = response.Response;
+            Console.WriteLine($"Found {responseData.Tokens.Count} tokens:");
+
+            foreach (var token in responseData.Tokens)
+            {
+                Console.WriteLine($"Token ID: {token.TokenId}");
+                Console.WriteLine($"Payment Token: {token.PaymentToken}");
+                Console.WriteLine($"Status: {token.Status}");
+                Console.WriteLine($"Card: {token.PaymentMethod} **** {token.CardLast4Digits}");
+                Console.WriteLine("---");
+            }
+        }
+        else if (response.ResponseCase == GetCardTokensResponse.ResponseOneofCase.Error)
+        {
+            var error = response.Error;
+            Console.WriteLine($"API Error: {error.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section" id="delete-token-section">
+                <h3>Delete Card Token - SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php', 'delete-token')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java', 'delete-token')">Java</button>
+                    <button class="tab-button" onclick="showTab('python', 'delete-token')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet', 'delete-token')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="delete-token-php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('delete-token-php-code')">Copy</button>
+                        <pre id="delete-token-php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\DeleteCardTokenRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create DeleteCardTokenRequest and set required fields
+$request = new DeleteCardTokenRequest();
+$request->setStoreId('your-store-id');
+$request->setTokenId('token-id-to-delete'); // or use setTokenReference()
+
+// Step 4: Call DeleteCardToken() method and wait for response
+list($response, $status) = $client->DeleteCardToken($request, $metadata)->wait();
+
+// Step 5: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 6: Process response
+if ($response->hasResponse()) {
+    echo "Token deleted successfully!" . PHP_EOL;
+} else if ($response->hasError()) {
+    $error = $response->getError();
+    echo "API Error: " . $error->getMessage() . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="delete-token-java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('delete-token-java-code')">Copy</button>
+                        <pre id="delete-token-java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.DeleteCardTokenRequest;
+import com.kodypay.grpc.ecom.v1.DeleteCardTokenResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
+public class DeleteCardTokenExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create DeleteCardTokenRequest and set required fields
+        DeleteCardTokenRequest request = DeleteCardTokenRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setTokenId("token-id-to-delete") // or use setTokenReference()
+            .build();
+
+        // Step 4: Call DeleteCardToken() method and get response
+        DeleteCardTokenResponse response = client.deleteCardToken(request);
+
+        // Step 5: Process response
+        if (response.hasResponse()) {
+            System.out.println("Token deleted successfully!");
+        } else if (response.hasError()) {
+            var error = response.getError();
+            System.out.println("API Error: " + error.getMessage());
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="delete-token-python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('delete-token-python-code')">Copy</button>
+                        <pre id="delete-token-python-code"><code>import grpc
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
+
+def delete_card_token():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create DeleteCardTokenRequest and set required fields
+    request = kody_model.DeleteCardTokenRequest(
+        store_id="your-store-id",
+        token_id="token-id-to-delete"  # or use token_reference
+    )
+
+    # Step 4: Call DeleteCardToken() method and get response
+    response = client.DeleteCardToken(request, metadata=metadata)
+
+    # Step 5: Process response
+    if response.HasField("response"):
+        print("Token deleted successfully!")
+    elif response.HasField("error"):
+        error = response.error
+        print(f"API Error: {error.message}")
+
+if __name__ == "__main__":
+    delete_card_token()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="delete-token-dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('delete-token-dotnet-code')">Copy</button>
+                        <pre id="delete-token-dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create DeleteCardTokenRequest and set required fields
+        var request = new DeleteCardTokenRequest
+        {
+            StoreId = "your-store-id",
+            TokenId = "token-id-to-delete" // or use TokenReference
+        };
+
+        // Step 5: Call DeleteCardToken() method and get response
+        var response = await client.DeleteCardTokenAsync(request, metadata);
+
+        // Step 6: Process response
+        if (response.ResponseCase == DeleteCardTokenResponse.ResponseOneofCase.Response)
+        {
+            Console.WriteLine("Token deleted successfully!");
+        }
+        else if (response.ResponseCase == DeleteCardTokenResponse.ResponseOneofCase.Error)
+        {
+            var error = response.Error;
+            Console.WriteLine($"API Error: {error.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        let isFirstLoad = true;
+
+        function fetchTokens() {
+            const payerReference = document.getElementById('payer-reference').value.trim();
+
+            if (!payerReference) {
+                document.getElementById('tokens-container').innerHTML = '<div class="no-tokens">Please enter a payer reference to view tokens</div>';
+                return;
+            }
+
+            // Allow reloading even if same payer reference (for manual refresh)
+
+            currentPayerReference = payerReference;
+            const container = document.getElementById('tokens-container');
+
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Loading tokens...</span>
+                </div>`;
+
+            fetch('api/get-card-tokens.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payer_reference: payerReference
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(error => {
+                            throw new Error(error.error || 'Failed to fetch tokens');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to fetch tokens');
+                    }
+
+                    if (!data.tokens || data.tokens.length === 0) {
+                        container.innerHTML = '<div class="no-tokens">No tokens found for this payer reference</div>';
+                        return;
+                    }
+
+                    // Build tokens table
+                    let html = `
+                        <table id="tokens-table">
+                            <thead>
+                                <tr>
+                                    <th>Token ID</th>
+                                    <th>Payment Token</th>
+                                    <th>Card Info</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Token Reference</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    data.tokens.forEach(token => {
+                        const status = getStatusText(token.status);
+                        const statusClass = getStatusClass(token.status);
+                        const createdDate = token.created_at ? new Date(token.created_at).toLocaleString() : 'N/A';
+                        const cardInfo = `${getPaymentMethodText(token.payment_method)} **** ${token.card_last_4_digits}`;
+                        const tokenReference = token.token_reference || 'N/A';
+
+                        // Show appropriate buttons based on token status
+                        let actionButtons = '<div class="button-group">';
+
+                        // Payment button - only available for READY tokens
+                        if (token.status === 2) { // READY status
+                            actionButtons += `<button onclick="useTokenForPayment('${token.payment_token}')" class="payment-btn">Use for Payment</button>`;
+                        } else {
+                            actionButtons += '<span class="card-info">Not available</span>';
+                        }
+
+                        // Delete button - available for READY, PENDING, and FAILED tokens (not DELETED or PENDING_DELETE)
+                        if (token.status !== 3 && token.status !== 4) { // Not DELETED or PENDING_DELETE
+                            actionButtons += `<button onclick="deleteToken('${token.token_id}')" class="delete-btn">Delete</button>`;
+                        }
+
+                        actionButtons += '</div>';
+                        const actionButton = actionButtons;
+
+                        html += `
+                            <tr>
+                                <td>${token.token_id}</td>
+                                <td class="card-info">${token.payment_token}</td>
+                                <td>${cardInfo}</td>
+                                <td class="${statusClass}">${status}</td>
+                                <td class="card-info">${createdDate}</td>
+                                <td class="token-reference">${tokenReference}</td>
+                                <td>${actionButton}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `</tbody></table>`;
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error fetching tokens:', error);
+                    container.innerHTML = `<div class="error-message">${escapeHtml(error.message)}</div>`;
+                });
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 0: return 'Pending';
+                case 1: return 'Failed';
+                case 2: return 'Ready';
+                case 3: return 'Deleted';
+                case 4: return 'Pending Delete';
+                default: return 'Unknown';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 0: return 'status-pending';
+                case 1: return 'status-failed';
+                case 2: return 'status-ready';
+                case 3: return 'status-deleted';
+                case 4: return 'status-deleted';
+                default: return '';
+            }
+        }
+
+        function getPaymentMethodText(method) {
+            switch(method) {
+                case 0: return 'Visa';
+                case 1: return 'Mastercard';
+                case 2: return 'Amex';
+                case 3: return 'Bancontact';
+                case 4: return 'China UnionPay';
+                case 5: return 'Maestro';
+                case 6: return 'Diners';
+                case 7: return 'Discover';
+                case 8: return 'JCB';
+                case 9: return 'Alipay';
+                case 10: return 'WeChat';
+                default: return 'Unknown';
+            }
+        }
+
+        function useTokenForPayment(paymentToken) {
+            // Show the payment form section
+            document.getElementById('payment-form-section').style.display = 'block';
+
+            // Set the payment token in the form
+            document.getElementById('payment-token').value = paymentToken;
+
+            // Generate a unique payment reference
+            document.getElementById('payment-reference').value = 'payment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Scroll to the payment form
+            document.getElementById('payment-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('payment-form-section').style.display = 'none';
+            document.getElementById('payment-result').style.display = 'none';
+            document.getElementById('payment-form').reset();
+        }
+
+        function handlePaymentSubmit(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payButton = document.getElementById('pay-button');
+            const resultDiv = document.getElementById('payment-result');
+
+            // Disable the pay button and show loading
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+            resultDiv.style.display = 'none';
+
+            // Convert FormData to JSON
+            const paymentData = {};
+            formData.forEach((value, key) => {
+                paymentData[key] = value;
+            });
+
+            // Convert amount to integer
+            paymentData.amount_minor_units = parseInt(paymentData.amount_minor_units);
+
+            fetch('api/pay-with-token.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => {
+                        throw new Error(error.error || 'Payment failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Payment successful
+                    resultDiv.className = 'payment-result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Payment Successful!</h3>
+                        <p><strong>Payment ID:</strong> ${data.payment_id}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        ${data.sale_data ? `
+                            <p><strong>Amount:</strong> ${(data.sale_data.amount_minor_units / 100).toFixed(2)} ${data.sale_data.currency}</p>
+                            <p><strong>Payment Reference:</strong> ${data.sale_data.payment_reference}</p>
+                            ${data.sale_data.order_id ? `<p><strong>Order ID:</strong> ${data.sale_data.order_id}</p>` : ''}
+                        ` : ''}
+                        ${data.payment_data ? `
+                            <p><strong>PSP Reference:</strong> ${data.payment_data.psp_reference}</p>
+                            <p><strong>Payment Method:</strong> ${data.payment_data.payment_method}</p>
+                            <p><strong>Auth Status:</strong> ${data.payment_data.auth_status}</p>
+                            ${data.payment_data.card ? `<p><strong>Card:</strong> **** ${data.payment_data.card.card_last_4_digits}</p>` : ''}
+                        ` : ''}
+                        <p><strong>Date:</strong> ${data.date_created || 'N/A'}</p>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                resultDiv.className = 'payment-result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Payment Failed</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                `;
+            })
+            .finally(() => {
+                // Re-enable the pay button
+                payButton.disabled = false;
+                payButton.textContent = 'Process Payment';
+                resultDiv.style.display = 'block';
+            });
+        }
+
+        function deleteToken(tokenId) {
+            if (!confirm('Are you sure you want to delete this token? This action cannot be undone.')) {
+                return;
+            }
+
+            // Disable the delete button to prevent multiple clicks
+            const deleteButtons = document.querySelectorAll(`button[onclick="deleteToken('${tokenId}')"]`);
+            deleteButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = 'Deleting...';
+            });
+
+            fetch('api/delete-card-token.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token_id: tokenId
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(error => {
+                            throw new Error(error.error || 'Failed to delete token');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to delete token');
+                    }
+
+                    // Success - refresh the tokens list
+                    alert('Token deleted successfully');
+                    fetchTokens();
+                })
+                .catch(error => {
+                    console.error('Error deleting token:', error);
+                    alert('Error deleting token: ' + error.message);
+
+                    // Re-enable the button on error
+                    deleteButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.textContent = 'Delete';
+                    });
+                });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function onPayerReferenceChange() {
+            // Clear current tokens when payer reference changes
+            if (currentPayerReference !== document.getElementById('payer-reference').value.trim()) {
+                document.getElementById('tokens-container').innerHTML = '<div class="no-tokens">Click "Load Tokens" or press Enter to view tokens for this payer</div>';
+                currentPayerReference = '';
+            }
+        }
+
+        function handleKeyPress(event) {
+            // Check if Enter key was pressed
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault(); // Prevent form submission if inside a form
+                fetchTokens();
+            }
+        }
+
+
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show PHP tabs by default for both sections
+            showTab('php', 'get-tokens');
+            showTab('php', 'delete-token');
+        });
+    </script>
 </body>
 </html>

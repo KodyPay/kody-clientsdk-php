@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminals</title>
+    <title>Terminals - KodyPay SDK Demo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -140,8 +140,9 @@
             text-decoration: none;
             color: #007bff;
         }
+
     </style>
-    <script src="js/bubble.php"></script>
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script>
         let isFirstLoad = true;
 
@@ -222,9 +223,73 @@
             return div.innerHTML;
         }
 
+        function copyCode(elementId) {
+            const codeElement = document.getElementById(elementId);
+            const code = codeElement.textContent || codeElement.innerText;
+
+            navigator.clipboard.writeText(code).then(function() {
+                // Visual feedback
+                const button = codeElement.parentElement.querySelector('.copy-btn');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // Visual feedback for fallback
+                const button = codeElement.parentElement.querySelector('.copy-btn');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function showTab(language) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+
+            // Show selected tab content
+            const selectedContent = document.getElementById(language + '-content');
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+            }
+
+            // Add active class to clicked button
+            const selectedButton = document.querySelector(`[onclick="showTab('${language}')"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+        }
+
         // Auto-refresh every 5 seconds
         setInterval(fetchTerminals, 5000);
-        window.onload = fetchTerminals;
+        window.onload = function() {
+            fetchTerminals();
+            // Show PHP tab by default
+            showTab('php');
+        };
     </script>
 </head>
 <body>
@@ -233,7 +298,7 @@
             <a href="/index.php">← Back to Main Menu</a>
         </div>
 
-        <h1>Terminals</h1>
+        <h1>Terminals - KodyPay SDK Demo</h1>
 
         <div id="terminals-container">
             <div class="loading">
@@ -244,6 +309,202 @@
 
         <div class="links">
             <a href="/index.php">Main menu</a>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Terminals</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyPayTerminalService</code></p>
+                <p><strong>Method:</strong> <code>Terminals()</code></p>
+                <p><strong>Request:</strong> <code>TerminalsRequest</code></p>
+                <p><strong>Response:</strong> <code>TerminalsResponse</code></p>
+            </div>
+
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Pay\V1\KodyPayTerminalServiceClient;
+use Com\Kodypay\Grpc\Pay\V1\TerminalsRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyPayTerminalServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create TerminalsRequest and set store ID
+$request = new TerminalsRequest();
+$request->setStoreId('your-store-id');
+
+// Step 4: Call Terminals() method and wait for response
+list($response, $status) = $client->Terminals($request, $metadata)->wait();
+
+// Step 5: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 6: Process terminals from response
+foreach ($response->getTerminals() as $terminal) {
+    echo "Terminal ID: " . $terminal->getTerminalId() . PHP_EOL;
+    echo "Online: " . ($terminal->getOnline() ? 'Yes' : 'No') . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.pay.v1.KodyPayTerminalServiceGrpc;
+import com.kodypay.grpc.pay.v1.TerminalsRequest;
+import com.kodypay.grpc.pay.v1.TerminalsResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+
+public class ListTerminalsExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyPayTerminalServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create TerminalsRequest and set store ID
+        TerminalsRequest request = TerminalsRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .build();
+
+        // Step 4: Call Terminals() method and get response
+        TerminalsResponse response = client.terminals(request);
+
+        // Step 5: Process terminals from response
+        response.getTerminalsList().forEach(terminal -> {
+            System.out.println("Terminal ID: " + terminal.getTerminalId());
+            System.out.println("Online: " + terminal.getOnline());
+        });
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import kody_clientsdk_python.pay.v1.pay_pb2 as kody_model
+import kody_clientsdk_python.pay.v1.pay_pb2_grpc as kody_client
+
+def list_terminals():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyPayTerminalServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create TerminalsRequest and set store ID
+    request = kody_model.TerminalsRequest(store_id="your-store-id")
+
+    # Step 4: Call Terminals() method and get response
+    response = client.Terminals(request, metadata=metadata)
+
+    # Step 5: Process terminals from response
+    for terminal in response.terminals:
+        print(f"Terminal ID: {terminal.terminal_id}")
+        print(f"Online: {terminal.online}")
+
+if __name__ == "__main__":
+    list_terminals()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Pay.V1;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyPayTerminalService.KodyPayTerminalServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create TerminalsRequest and set store ID
+        var request = new TerminalsRequest { StoreId = "your-store-id" };
+
+        // Step 5: Call Terminals() method and get response
+        var response = await client.TerminalsAsync(request, metadata);
+
+        // Step 6: Process terminals from response
+        foreach (var terminal in response.Terminals)
+        {
+            Console.WriteLine($"Terminal ID: {terminal.TerminalId}");
+            Console.WriteLine($"Online: {terminal.Online}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

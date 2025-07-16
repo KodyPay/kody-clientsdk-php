@@ -120,7 +120,10 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             min-height: 60px;
         }
 
-        button {
+        form button,
+        button[type="submit"],
+        .regenerate-button,
+        .redirect-button {
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -131,11 +134,17 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             width: 100%;
         }
 
-        button:hover {
+        form button:hover,
+        button[type="submit"]:hover,
+        .regenerate-button:hover,
+        .redirect-button:hover {
             background-color: #45a049;
         }
 
-        button:disabled {
+        form button:disabled,
+        button[type="submit"]:disabled,
+        .regenerate-button:disabled,
+        .redirect-button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
@@ -192,13 +201,13 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             margin: 10px 0;
         }
 
-        .redirect-button {
+        .token-result .redirect-button {
             background-color: #007bff;
             margin-top: 15px;
             padding: 12px 24px;
         }
 
-        .redirect-button:hover {
+        .token-result .redirect-button:hover {
             background-color: #0056b3;
         }
 
@@ -209,15 +218,15 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             margin-bottom: 15px;
         }
 
-        .regenerate-button {
-            width: auto !important;
+        form .regenerate-button {
+            width: auto;
             margin-bottom: 20px;
             background-color: #6c757d;
             padding: 8px 16px;
             font-size: 14px;
         }
 
-        .regenerate-button:hover {
+        form .regenerate-button:hover {
             background-color: #5a6268;
         }
 
@@ -262,7 +271,10 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
+
     </style>
+    <link rel="stylesheet" href="css/sdk-common.php">
+    <script src="js/sdk-common.php"></script>
 </head>
 <body>
     <div class="container">
@@ -337,94 +349,297 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
 
         <div class="dev-info">
             <h2>Developer Information</h2>
-            <p>This page demonstrates how token-based payments work. In a real application, payment tokens would be securely stored and associated with customer accounts.</p>
+            <p>This page demonstrates token-based payment creation. Tokens securely store payment methods for future use without exposing card details.</p>
 
-            <h3>Token Payment Flow</h3>
+            <h3>Key Points</h3>
             <ul>
-                <li><strong>Token Storage:</strong> Payment method tokens are securely stored after initial customer authorization</li>
-                <li><strong>Token Selection:</strong> Customers can select from their saved payment methods</li>
-                <li><strong>Payment Processing:</strong> The selected token is used to process the payment without requiring card details</li>
-                <li><strong>Security:</strong> Tokens are encrypted and can be revoked if needed</li>
+                <li><strong>CreateCardToken API:</strong> Creates secure payment tokens via <code>/api/create-card-token.php</code></li>
+                <li><strong>Required:</strong> payer_reference, return_url, recurring_processing_model</li>
+                <li><strong>Flow:</strong> Create token → Customer authorization → Token ready for payments</li>
             </ul>
+        </div>
 
-            <h3>CreateCardToken API Usage</h3>
-            <p>Before customers can use saved payment methods, you need to create tokens using the <code>CreateCardToken</code> API. This application provides an endpoint at <code>/api/create-card-token.php</code> for this purpose.</p>
+        <div class="section-divider"></div>
 
-            <h4>API Endpoint</h4>
-            <p><strong>POST</strong> <code>/api/create-card-token.php</code></p>
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Create Card Token</h2>
 
-            <h4>Request Body (JSON)</h4>
-            <pre><code>{
-    "payer_reference": "customer_123",
-    "return_url": "<?php echo htmlspecialchars($returnUrl); ?>",
-    "idempotency_uuid": "<?php echo htmlspecialchars($randomIdempotencyUuid); ?>",
-    "token_reference": "<?php echo htmlspecialchars($randomTokenReference); ?>",
-    "payer_email_address": "customer@example.com",
-    "payer_phone_number": "+1234567890",
-    "recurring_processing_model": "SUBSCRIPTION",
-    "payer_statement": "Statement text",
-    "metadata": "{\"customer_name\": \"John Doe\", \"card_alias\": \"My Primary Card\"}"
-}</code></pre>
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>KodyEcomPaymentsService</code></p>
+                <p><strong>Method:</strong> <code>CreateCardToken()</code></p>
+                <p><strong>Request:</strong> <code>CreateTokenRequest</code></p>
+                <p><strong>Response:</strong> <code>CreateTokenResponse</code></p>
+            </div>
 
-            <h4>Response Format</h4>
-            <pre><code>// Success Response
-{
-    "response": {
-        "token_id": "P._pay.7bG7U1Y",
-        "create_token_url": "https://p-staging.kody.com/P._pay.7bG7U1Y"
-    }
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
+use Com\Kodypay\Grpc\Ecom\V1\CreateTokenRequest;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new KodyEcomPaymentsServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create CreateTokenRequest and set required fields
+$request = new CreateTokenRequest();
+$request->setStoreId('your-store-id');
+$request->setPayerReference('customer_123'); // Customer ID
+$request->setReturnUrl('https://your-domain.com/token-callback');
+$request->setRecurringProcessingModel('SUBSCRIPTION');
+
+// Step 4: Set optional fields
+$request->setTokenReference('token-ref-' . uniqid());
+$request->setIdempotencyUuid(uniqid('', true)); // or use: bin2hex(random_bytes(16))
+$request->setPayerEmailAddress('customer@example.com');
+$request->setPayerPhoneNumber('+1234567890');
+$request->setPayerStatement('Card Setup');
+$request->setMetadata('{"customer_name": "John Doe"}');
+
+// Step 5: Call CreateCardToken() method and wait for response
+list($response, $status) = $client->CreateCardToken($request, $metadata)->wait();
+
+// Step 6: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
 }
 
-// Error Response
-{
-    "success": false,
-    "error_message": "Missing required field: payer_reference"
+// Step 7: Process response
+if ($response->hasResponse()) {
+    $responseData = $response->getResponse();
+    echo "Token ID: " . $responseData->getTokenId() . PHP_EOL;
+    echo "Token URL: " . $responseData->getCreateTokenUrl() . PHP_EOL;
+
+    // Redirect customer to complete tokenization
+    header('Location: ' . $responseData->getCreateTokenUrl());
+} else if ($response->hasError()) {
+    $error = $response->getError();
+    echo "API Error: " . $error->getMessage() . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+import com.kodypay.grpc.ecom.v1.CreateTokenRequest;
+import com.kodypay.grpc.ecom.v1.CreateTokenResponse;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+import java.util.UUID;
+
+public class CreateCardTokenExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = KodyEcomPaymentsServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create CreateTokenRequest and set required fields
+        CreateTokenRequest request = CreateTokenRequest.newBuilder()
+            .setStoreId("your-store-id")
+            .setPayerReference("customer_123") // Customer ID
+            .setReturnUrl("https://your-domain.com/token-callback")
+            .setRecurringProcessingModel("SUBSCRIPTION")
+            .setTokenReference("token-ref-" + System.currentTimeMillis())
+            .setIdempotencyUuid(UUID.randomUUID().toString())
+            .setPayerEmailAddress("customer@example.com")
+            .setPayerPhoneNumber("+1234567890")
+            .setPayerStatement("Card Setup")
+            .setMetadata("{\"customer_name\": \"John Doe\"}")
+            .build();
+
+        // Step 4: Call CreateCardToken() method and get response
+        CreateTokenResponse response = client.createCardToken(request);
+
+        // Step 5: Process response
+        if (response.hasResponse()) {
+            var responseData = response.getResponse();
+            System.out.println("Token ID: " + responseData.getTokenId());
+            System.out.println("Token URL: " + responseData.getCreateTokenUrl());
+
+            // Redirect customer to complete tokenization
+            // response.sendRedirect(responseData.getCreateTokenUrl());
+        } else if (response.hasError()) {
+            var error = response.getError();
+            System.out.println("API Error: " + error.getMessage());
+        }
+    }
 }</code></pre>
+                    </div>
+                </div>
 
-            <h3>Required Fields</h3>
-            <ul>
-                <li><strong>payer_reference:</strong> Customer ID or unique identifier</li>
-                <li><strong>return_url:</strong> Callback URL (automatically set)</li>
-                <li><strong>recurring_processing_model:</strong> Payment processing model</li>
-            </ul>
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+import uuid
+import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
+import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
 
-            <h3>Optional Fields</h3>
-            <ul>
-                <li><strong>payer_email_address:</strong> Customer email (recommended for fraud checks)</li>
-                <li><strong>payer_phone_number:</strong> Customer phone number</li>
-                <li><strong>payer_statement:</strong> Text shown on bank statement (max 22 characters)</li>
-                <li><strong>metadata:</strong> Additional data in JSON format</li>
-                <li><strong>token_reference:</strong> Your reference for the token (auto-generated)</li>
-                <li><strong>idempotency_uuid:</strong> Unique request identifier (auto-generated)</li>
-            </ul>
+def create_card_token():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
 
-            <h3>Token Creation Flow</h3>
-            <ol>
-                <li><strong>Create Token Request:</strong> Call <code>CreateCardToken</code> with customer details</li>
-                <li><strong>Customer Authorization:</strong> Redirect customer to the returned URL</li>
-                <li><strong>Token Storage:</strong> After authorization, token is stored securely</li>
-                <li><strong>Future Payments:</strong> Use <code>PayWithCardToken</code> for subsequent payments</li>
-            </ol>
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
 
-            <h3>Implementation Notes</h3>
-            <ul>
-                <li><strong>Token Format:</strong> Each token has a unique identifier (e.g., 'P._pay.7bG7U1Y')</li>
-                <li><strong>Token Types:</strong> Support for various payment methods (cards, digital wallets, etc.)</li>
-                <li><strong>Security:</strong> Tokens are one-way encrypted and cannot be reverse-engineered</li>
-                <li><strong>Compliance:</strong> Token storage follows PCI DSS compliance requirements</li>
-                <li><strong>Return URL:</strong> Automatically set to <code><?php echo htmlspecialchars($returnUrl); ?></code></li>
-            </ul>
+    # Step 2: Create client and set metadata with API key
+    client = kody_client.KodyEcomPaymentsServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
 
-            <h3>Response Handling</h3>
-            <p>The API returns different response formats for success and error cases:</p>
-            <ul>
-                <li><strong>Success:</strong> Returns a <code>response</code> object containing the token details</li>
-                <li><strong>Error:</strong> Returns <code>success: false</code> with an <code>error_message</code> field</li>
-                <li><strong>Token URL:</strong> The <code>create_token_url</code> is where users complete card tokenization</li>
-                <li><strong>Token ID:</strong> Unique identifier for tracking the tokenization process</li>
-            </ul>
+    # Step 3: Create CreateTokenRequest and set required fields
+    request = kody_model.CreateTokenRequest(
+        store_id="your-store-id",
+        payer_reference="customer_123",  # Customer ID
+        return_url="https://your-domain.com/token-callback",
+        recurring_processing_model="SUBSCRIPTION",
+        token_reference=f"token-ref-{int(time.time())}",
+        idempotency_uuid=str(uuid.uuid4()),
+        payer_email_address="customer@example.com",
+        payer_phone_number="+1234567890",
+        payer_statement="Card Setup",
+        metadata='{"customer_name": "John Doe"}'
+    )
 
-            <p>For more information about implementing token payments with Kody, please refer to the <a href="https://api-docs.kody.com" target="_blank">Kody API Documentation</a>.</p>
+    # Step 4: Call CreateCardToken() method and get response
+    response = client.CreateCardToken(request, metadata=metadata)
+
+    # Step 5: Process response
+    if response.HasField("response"):
+        response_data = response.response
+        print(f"Token ID: {response_data.token_id}")
+        print(f"Token URL: {response_data.create_token_url}")
+
+        # Redirect customer to complete tokenization
+        # webbrowser.open(response_data.create_token_url)
+    elif response.HasField("error"):
+        error = response.error
+        print(f"API Error: {error.message}")
+
+if __name__ == "__main__":
+    create_card_token()</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Ecom.V1;
+using System;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new KodyEcomPaymentsService.KodyEcomPaymentsServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create CreateTokenRequest and set required fields
+        var request = new CreateTokenRequest
+        {
+            StoreId = "your-store-id",
+            PayerReference = "customer_123", // Customer ID
+            ReturnUrl = "https://your-domain.com/token-callback",
+            RecurringProcessingModel = "SUBSCRIPTION",
+            TokenReference = $"token-ref-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}",
+            IdempotencyUuid = Guid.NewGuid().ToString(),
+            PayerEmailAddress = "customer@example.com",
+            PayerPhoneNumber = "+1234567890",
+            PayerStatement = "Card Setup",
+            Metadata = "{\"customer_name\": \"John Doe\"}"
+        };
+
+        try
+        {
+            // Step 5: Call CreateCardToken() method and get response
+            var response = await client.CreateCardTokenAsync(request, metadata);
+
+            // Step 6: Process response
+            if (response.ResponseCase == CreateTokenResponse.ResponseOneofCase.Response)
+            {
+                var responseData = response.Response;
+                Console.WriteLine($"Token ID: {responseData.TokenId}");
+                Console.WriteLine($"Token URL: {responseData.CreateTokenUrl}");
+
+                // Redirect customer to complete tokenization
+                // Response.Redirect(responseData.CreateTokenUrl);
+            }
+            else if (response.ResponseCase == CreateTokenResponse.ResponseOneofCase.Error)
+            {
+                var error = response.Error;
+                Console.WriteLine($"API Error: {error.Message}");
+            }
+        }
+        catch (RpcException ex)
+        {
+            Console.WriteLine($"gRPC Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -466,6 +681,7 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
 
             // Add event listener to regenerate button
             regenerateButton.addEventListener('click', regenerateRandomValues);
+
 
             createTokenForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -593,6 +809,7 @@ $returnUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['
                 }
             });
         });
+
     </script>
 </body>
 </html>

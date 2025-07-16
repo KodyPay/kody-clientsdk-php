@@ -157,7 +157,10 @@
         .top-nav a:hover {
             text-decoration: underline;
         }
+
     </style>
+    <link rel="stylesheet" href="css/sdk-common.php">
+    <script src="js/sdk-common.php"></script>
 </head>
 <body>
     <div class="container">
@@ -178,6 +181,332 @@
 
         <div class="links">
             <a href="/index.php">Main menu</a>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="developer-section">
+            <h2>🔧 KodyPay SDK Usage - Get Logs</h2>
+
+            <div class="sdk-info">
+                <h4>SDK Information</h4>
+                <p><strong>Service:</strong> <code>LoggingService</code></p>
+                <p><strong>Method:</strong> <code>GetLogs()</code></p>
+                <p><strong>Request:</strong> <code>GetLogsRequest</code></p>
+                <p><strong>Response:</strong> <code>GetLogsResponse</code></p>
+            </div>
+
+            <div class="code-section">
+                <h3>SDK Examples</h3>
+
+                <div class="tabs">
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
+                </div>
+
+                <!-- PHP Tab -->
+                <div id="php-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Com\Kodypay\Grpc\Utils\V1\LoggingServiceClient;
+use Com\Kodypay\Grpc\Utils\V1\GetLogsRequest;
+use Google\Protobuf\Timestamp;
+use Grpc\ChannelCredentials;
+
+// Configuration
+$HOSTNAME = "grpc-staging.kodypay.com";
+$API_KEY = "your-api-key";
+
+// Step 1: Initialize SDK client with SSL credentials
+$client = new LoggingServiceClient($HOSTNAME, [
+    'credentials' => ChannelCredentials::createSsl()
+]);
+
+// Step 2: Set authentication headers with your API key
+$metadata = ['X-API-Key' => [$API_KEY]];
+
+// Step 3: Create GetLogsRequest and set required fields
+$request = new GetLogsRequest();
+$request->setStoreId('your-store-id');
+
+// Step 4: Optional filters
+// Filter by time range
+$startTime = new Timestamp();
+$startTime->fromDateTime(new DateTime('-1 hour')); // Last hour
+$request->setStartTime($startTime);
+
+$endTime = new Timestamp();
+$endTime->fromDateTime(new DateTime('now'));
+$request->setEndTime($endTime);
+
+
+// Step 5: Call GetLogs() method and wait for response
+list($response, $status) = $client->GetLogs($request, $metadata)->wait();
+
+// Step 6: Handle gRPC response status
+if ($status->code !== \Grpc\STATUS_OK) {
+    echo "Error: " . $status->details . PHP_EOL;
+    exit;
+}
+
+// Step 7: Process response
+$logs = $response->getLogs();
+echo "Found " . count($logs) . " log entries:" . PHP_EOL;
+
+foreach ($logs as $logEntry) {
+    echo "ID: " . $logEntry->getId() . PHP_EOL;
+    echo "Timestamp: " . $logEntry->getTimestamp()->toDateTime()->format('Y-m-d H:i:s') . PHP_EOL;
+    echo "Event: " . $logEntry->getEvent() . PHP_EOL;
+
+    // Process context data
+    $context = $logEntry->getContext();
+    if (!empty($context)) {
+        echo "Context:" . PHP_EOL;
+        foreach ($context as $key => $value) {
+            echo "  $key: $value" . PHP_EOL;
+        }
+    }
+    echo "---" . PHP_EOL;
+}
+?&gt;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Java Tab -->
+                <div id="java-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.utils.v1.LoggingServiceGrpc;
+import com.kodypay.grpc.utils.v1.GetLogsRequest;
+import com.kodypay.grpc.utils.v1.GetLogsResponse;
+import com.google.protobuf.Timestamp;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
+import io.grpc.stub.MetadataUtils;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+public class GetLogsExample {
+    public static final String HOSTNAME = "grpc-staging.kodypay.com";
+    public static final String API_KEY = "your-api-key";
+
+    public static void main(String[] args) {
+        // Step 1: Create metadata with API key
+        Metadata metadata = new Metadata();
+        metadata.put(Metadata.Key.of("X-API-Key", Metadata.ASCII_STRING_MARSHALLER), API_KEY);
+
+        // Step 2: Build secure channel and create client
+        var channel = ManagedChannelBuilder.forAddress(HOSTNAME, 443)
+            .useTransportSecurity()
+            .build();
+        var client = LoggingServiceGrpc.newBlockingStub(channel)
+            .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+
+        // Step 3: Create GetLogsRequest and set required fields
+        var requestBuilder = GetLogsRequest.newBuilder()
+            .setStoreId("your-store-id");
+
+        // Step 4: Optional filters
+        // Filter by time range (last hour)
+        Instant now = Instant.now();
+        Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
+
+        Timestamp startTime = Timestamp.newBuilder()
+            .setSeconds(oneHourAgo.getEpochSecond())
+            .build();
+        Timestamp endTime = Timestamp.newBuilder()
+            .setSeconds(now.getEpochSecond())
+            .build();
+
+        requestBuilder.setStartTime(startTime)
+                     .setEndTime(endTime);
+
+
+        GetLogsRequest request = requestBuilder.build();
+
+        // Step 5: Call GetLogs() method and get response
+        GetLogsResponse response = client.getLogs(request);
+
+        // Step 6: Process response
+        System.out.println("Found " + response.getLogsCount() + " log entries:");
+
+        response.getLogsList().forEach(logEntry -> {
+            System.out.println("ID: " + logEntry.getId());
+            System.out.println("Timestamp: " + logEntry.getTimestamp());
+            System.out.println("Event: " + logEntry.getEvent());
+
+            // Process context data
+            if (!logEntry.getContextMap().isEmpty()) {
+                System.out.println("Context:");
+                logEntry.getContextMap().forEach((key, value) -> {
+                    System.out.println("  " + key + ": " + value);
+                });
+            }
+            System.out.println("---");
+        });
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- Python Tab -->
+                <div id="python-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
+from datetime import datetime, timedelta
+import kody_clientsdk_python.utils.v1.logging_pb2 as logging_model
+import kody_clientsdk_python.utils.v1.logging_pb2_grpc as logging_client
+from google.protobuf.timestamp_pb2 import Timestamp
+
+def get_logs():
+    # Configuration
+    HOSTNAME = "grpc-staging.kodypay.com:443"
+    API_KEY = "your-api-key"
+
+    # Step 1: Create secure channel
+    channel = grpc.secure_channel(HOSTNAME, grpc.ssl_channel_credentials())
+
+    # Step 2: Create client and set metadata with API key
+    client = logging_client.LoggingServiceStub(channel)
+    metadata = [("x-api-key", API_KEY)]
+
+    # Step 3: Create GetLogsRequest and set required fields
+    request = logging_model.GetLogsRequest(
+        store_id="your-store-id"
+    )
+
+    # Step 4: Optional filters
+    # Filter by time range (last hour)
+    end_time = datetime.now()
+    start_time = end_time - timedelta(hours=1)
+
+    start_timestamp = Timestamp()
+    start_timestamp.FromDatetime(start_time)
+    request.start_time.CopyFrom(start_timestamp)
+
+    end_timestamp = Timestamp()
+    end_timestamp.FromDatetime(end_time)
+    request.end_time.CopyFrom(end_timestamp)
+
+
+    # Step 5: Call GetLogs() method and get response
+    response = client.GetLogs(request, metadata=metadata)
+
+    # Step 6: Process response
+    logs = response.logs
+    print(f"Found {len(logs)} log entries:")
+
+    for log_entry in logs:
+        print(f"ID: {log_entry.id}")
+        print(f"Timestamp: {log_entry.timestamp.ToDatetime()}")
+        print(f"Event: {log_entry.event}")
+
+        # Process context data
+        if log_entry.context:
+            print("Context:")
+            for key, value in log_entry.context.items():
+                print(f"  {key}: {value}")
+        print("---")
+
+if __name__ == "__main__":
+    try:
+        get_logs()
+    except grpc.RpcError as e:
+        print(f"gRPC Error: {e.code()} - {e.details()}")
+    except Exception as e:
+        print(f"Exception: {e}")</code></pre>
+                    </div>
+                </div>
+
+                <!-- .NET Tab -->
+                <div id="dotnet-content" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
+using Grpc.Net.Client;
+using Com.Kodypay.Grpc.Utils.V1;
+using Google.Protobuf.WellKnownTypes;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        // Configuration
+        var HOSTNAME = "grpc-staging.kodypay.com";
+        var API_KEY = "your-api-key";
+
+        // Step 1: Create secure channel
+        var channel = GrpcChannel.ForAddress("https://" + HOSTNAME);
+
+        // Step 2: Create client
+        var client = new LoggingService.LoggingServiceClient(channel);
+
+        // Step 3: Set authentication headers with API key
+        var metadata = new Metadata
+        {
+            { "X-API-Key", API_KEY }
+        };
+
+        // Step 4: Create GetLogsRequest and set required fields
+        var request = new GetLogsRequest
+        {
+            StoreId = "your-store-id"
+        };
+
+        // Step 5: Optional filters
+        // Filter by time range (last hour)
+        var endTime = DateTime.UtcNow;
+        var startTime = endTime.AddHours(-1);
+
+        request.StartTime = Timestamp.FromDateTime(startTime);
+        request.EndTime = Timestamp.FromDateTime(endTime);
+
+
+        try
+        {
+            // Step 6: Call GetLogs() method and get response
+            var response = await client.GetLogsAsync(request, metadata);
+
+            // Step 7: Process response
+            Console.WriteLine($"Found {response.Logs.Count} log entries:");
+
+            foreach (var logEntry in response.Logs)
+            {
+                Console.WriteLine($"ID: {logEntry.Id}");
+                Console.WriteLine($"Timestamp: {logEntry.Timestamp.ToDateTime()}");
+                Console.WriteLine($"Event: {logEntry.Event}");
+
+                // Process context data
+                if (logEntry.Context.Count > 0)
+                {
+                    Console.WriteLine("Context:");
+                    foreach (var kvp in logEntry.Context)
+                    {
+                        Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
+                    }
+                }
+                Console.WriteLine("---");
+            }
+        }
+        catch (RpcException ex)
+        {
+            Console.WriteLine($"gRPC Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -299,6 +628,7 @@
             document.getElementById('logs-container').innerHTML =
                 `<div class="error-message">${escapeHtml(message)}</div>`;
         }
+
     </script>
 </body>
 </html>

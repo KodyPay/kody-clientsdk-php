@@ -186,7 +186,7 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
         }
 
     </style>
-    <link rel="stylesheet" href="css/sdk-common.css">
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/sdk-common.php"></script>
 </head>
 <body>

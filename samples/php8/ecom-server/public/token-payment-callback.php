@@ -195,6 +195,7 @@ $isSuccess = $status === 'success' || ($token_id && !$error);
                 <div class="links">
                     <a href="/index.php">Main menu</a>
                     <a href="/token-payment.php">Create Another Token</a>
+                    <a href="/token-payment-tokens.php">View My Tokens</a>
                 </div>
             </div>
         <?php else: ?>
@@ -226,6 +227,7 @@ $isSuccess = $status === 'success' || ($token_id && !$error);
                 <div class="links">
                     <a href="/index.php">Main menu</a>
                     <a href="/token-payment.php">Try Again</a>
+                    <a href="/token-payment-tokens.php">View My Tokens</a>
                 </div>
             </div>
         <?php endif; ?>

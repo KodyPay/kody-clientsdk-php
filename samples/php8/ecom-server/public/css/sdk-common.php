@@ -1,3 +1,7 @@
+<?php
+header('Content-Type: text/css');
+?>
+
 /* SDK Section Styles - Shared across all pages with SDK documentation */
 
 .developer-section {

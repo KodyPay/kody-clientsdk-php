@@ -142,7 +142,7 @@
         }
 
     </style>
-    <link rel="stylesheet" href="css/sdk-common.css">
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script>
         let isFirstLoad = true;
 

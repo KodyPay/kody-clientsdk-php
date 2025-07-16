@@ -235,8 +235,108 @@
             color: #888;
             font-style: italic;
         }
+
+        /* Payment Form Styles */
+        .payment-form-section {
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: none;
+        }
+
+        .payment-form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .form-actions {
+            margin-top: 20px;
+        }
+
+        .pay-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .pay-button:hover {
+            background-color: #218838;
+        }
+
+        .pay-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .cancel-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .cancel-button:hover {
+            background-color: #5a6268;
+        }
+
+        .payment-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .payment-result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .payment-result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
     </style>
-    <link rel="stylesheet" href="css/sdk-common.css">
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/bubble.php"></script>
     <script src="js/sdk-common.php"></script>
     <script>
@@ -390,8 +490,101 @@
         }
 
         function useTokenForPayment(paymentToken) {
-            // Redirect to token payment page with the selected token
-            window.location.href = `token-payment-tokens.php?payment_token=${encodeURIComponent(paymentToken)}`;
+            // Show the payment form section
+            document.getElementById('payment-form-section').style.display = 'block';
+
+            // Set the payment token in the form
+            document.getElementById('payment-token').value = paymentToken;
+
+            // Generate a unique payment reference
+            document.getElementById('payment-reference').value = 'payment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Scroll to the payment form
+            document.getElementById('payment-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('payment-form-section').style.display = 'none';
+            document.getElementById('payment-result').style.display = 'none';
+            document.getElementById('payment-form').reset();
+        }
+
+        function handlePaymentSubmit(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payButton = document.getElementById('pay-button');
+            const resultDiv = document.getElementById('payment-result');
+
+            // Disable the pay button and show loading
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+            resultDiv.style.display = 'none';
+
+            // Convert FormData to JSON
+            const paymentData = {};
+            formData.forEach((value, key) => {
+                paymentData[key] = value;
+            });
+
+            // Convert amount to integer
+            paymentData.amount_minor_units = parseInt(paymentData.amount_minor_units);
+
+            fetch('api/pay-with-token.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => {
+                        throw new Error(error.error || 'Payment failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Payment successful
+                    resultDiv.className = 'payment-result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Payment Successful!</h3>
+                        <p><strong>Payment ID:</strong> ${data.payment_id}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        ${data.sale_data ? `
+                            <p><strong>Amount:</strong> ${(data.sale_data.amount_minor_units / 100).toFixed(2)} ${data.sale_data.currency}</p>
+                            <p><strong>Payment Reference:</strong> ${data.sale_data.payment_reference}</p>
+                            ${data.sale_data.order_id ? `<p><strong>Order ID:</strong> ${data.sale_data.order_id}</p>` : ''}
+                        ` : ''}
+                        ${data.payment_data ? `
+                            <p><strong>PSP Reference:</strong> ${data.payment_data.psp_reference}</p>
+                            <p><strong>Payment Method:</strong> ${data.payment_data.payment_method}</p>
+                            <p><strong>Auth Status:</strong> ${data.payment_data.auth_status}</p>
+                            ${data.payment_data.card ? `<p><strong>Card:</strong> **** ${data.payment_data.card.card_last_4_digits}</p>` : ''}
+                        ` : ''}
+                        <p><strong>Date:</strong> ${data.date_created || 'N/A'}</p>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                resultDiv.className = 'payment-result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Payment Failed</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                `;
+            })
+            .finally(() => {
+                // Re-enable the pay button
+                payButton.disabled = false;
+                payButton.textContent = 'Process Payment';
+                resultDiv.style.display = 'block';
+            });
         }
 
         function deleteToken(tokenId) {
@@ -467,27 +660,6 @@
         }
 
 
-        function showTab(language, section) {
-            // Hide all tab contents for this section
-            const tabContents = document.querySelectorAll(`#${section}-section .tab-content`);
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Remove active class from all buttons in this section
-            const tabButtons = document.querySelectorAll(`#${section}-section .tab-button`);
-            tabButtons.forEach(button => button.classList.remove('active'));
-
-            // Show selected tab content
-            const selectedContent = document.getElementById(`${section}-${language}-content`);
-            if (selectedContent) {
-                selectedContent.classList.add('active');
-            }
-
-            // Add active class to clicked button
-            const selectedButton = document.querySelector(`#${section}-section [onclick="showTab('${language}', '${section}')"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('active');
-            }
-        }
     </script>
 </head>
 <body>
@@ -512,6 +684,58 @@
             <a href="/index.php">Main menu</a>
         </div>
 
+        <!-- Payment Form Section -->
+        <div id="payment-form-section" class="payment-form-section">
+            <h2>💳 Pay with Selected Token</h2>
+            <form id="payment-form" onsubmit="handlePaymentSubmit(event)">
+                <div class="form-group">
+                    <label for="payment-token">Payment Token:</label>
+                    <input type="text" id="payment-token" name="payment_token" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount (minor units):</label>
+                    <input type="number" id="amount" name="amount_minor_units" min="1" step="1" required>
+                    <small>Enter amount in minor units (e.g., 2000 for £20.00)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="currency">Currency:</label>
+                    <select id="currency" name="currency" required>
+                        <option value="GBP">GBP - British Pound</option>
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="HKD">HKD - Hong Kong Dollar</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-reference">Payment Reference:</label>
+                    <input type="text" id="payment-reference" name="payment_reference" required>
+                    <small>Your unique reference for this payment</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="order-id">Order ID (optional):</label>
+                    <input type="text" id="order-id" name="order_id">
+                    <small>Your identifier for the order</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="payer-statement">Payer Statement (optional):</label>
+                    <input type="text" id="payer-statement" name="payer_statement" maxlength="22">
+                    <small>Text to appear on payer's bank statement (max 22 characters)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="pay-button" id="pay-button">Process Payment</button>
+                    <button type="button" class="cancel-button" onclick="hidePaymentForm()">Cancel</button>
+                </div>
+            </form>
+
+            <div id="payment-result" class="payment-result"></div>
+        </div>
+
         <div class="section-divider"></div>
 
         <div class="developer-section">
@@ -529,17 +753,17 @@
                 <h3>Get Card Tokens - SDK Examples</h3>
 
                 <div class="tabs">
-                    <button class="tab-button" onclick="showTab('php', 'get-tokens')">PHP</button>
-                    <button class="tab-button" onclick="showTab('java', 'get-tokens')">Java</button>
-                    <button class="tab-button" onclick="showTab('python', 'get-tokens')">Python</button>
-                    <button class="tab-button" onclick="showTab('dotnet', 'get-tokens')">.NET</button>
+                    <button class="tab-button" onclick="showTab('php')">PHP</button>
+                    <button class="tab-button" onclick="showTab('java')">Java</button>
+                    <button class="tab-button" onclick="showTab('python')">Python</button>
+                    <button class="tab-button" onclick="showTab('dotnet')">.NET</button>
                 </div>
 
                 <!-- PHP Tab -->
-                <div id="get-tokens-php-content" class="tab-content">
+                <div id="php-content" class="tab-content">
                     <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode('get-tokens-php-code')">Copy</button>
-                        <pre id="get-tokens-php-code"><code>&lt;?php
+                        <button class="copy-btn" onclick="copyCode('php-code')">Copy</button>
+                        <pre id="php-code"><code>&lt;?php
 require __DIR__ . '/../vendor/autoload.php';
 
 use Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient;
@@ -594,10 +818,10 @@ if ($response->hasResponse()) {
                 </div>
 
                 <!-- Java Tab -->
-                <div id="get-tokens-java-content" class="tab-content">
+                <div id="java-content" class="tab-content">
                     <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode('get-tokens-java-code')">Copy</button>
-                        <pre id="get-tokens-java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
+                        <button class="copy-btn" onclick="copyCode('java-code')">Copy</button>
+                        <pre id="java-code"><code>import com.kodypay.grpc.ecom.v1.KodyEcomPaymentsServiceGrpc;
 import com.kodypay.grpc.ecom.v1.GetCardTokensRequest;
 import com.kodypay.grpc.ecom.v1.GetCardTokensResponse;
 import io.grpc.ManagedChannelBuilder;
@@ -651,10 +875,10 @@ public class GetCardTokensExample {
                 </div>
 
                 <!-- Python Tab -->
-                <div id="get-tokens-python-content" class="tab-content">
+                <div id="python-content" class="tab-content">
                     <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode('get-tokens-python-code')">Copy</button>
-                        <pre id="get-tokens-python-code"><code>import grpc
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
+                        <pre id="python-code"><code>import grpc
 import kody_clientsdk_python.ecom.v1.ecom_pb2 as kody_model
 import kody_clientsdk_python.ecom.v1.ecom_pb2_grpc as kody_client
 
@@ -700,10 +924,10 @@ if __name__ == "__main__":
                 </div>
 
                 <!-- .NET Tab -->
-                <div id="get-tokens-dotnet-content" class="tab-content">
+                <div id="dotnet-content" class="tab-content">
                     <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode('get-tokens-dotnet-code')">Copy</button>
-                        <pre id="get-tokens-dotnet-code"><code>using Grpc.Core;
+                        <button class="copy-btn" onclick="copyCode('dotnet-code')">Copy</button>
+                        <pre id="dotnet-code"><code>using Grpc.Core;
 using Grpc.Net.Client;
 using Com.Kodypay.Ecom.V1;
 
@@ -1119,8 +1343,101 @@ class Program
         }
 
         function useTokenForPayment(paymentToken) {
-            // Redirect to token payment page with the selected token
-            window.location.href = `token-payment-tokens.php?payment_token=${encodeURIComponent(paymentToken)}`;
+            // Show the payment form section
+            document.getElementById('payment-form-section').style.display = 'block';
+
+            // Set the payment token in the form
+            document.getElementById('payment-token').value = paymentToken;
+
+            // Generate a unique payment reference
+            document.getElementById('payment-reference').value = 'payment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Scroll to the payment form
+            document.getElementById('payment-form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hidePaymentForm() {
+            document.getElementById('payment-form-section').style.display = 'none';
+            document.getElementById('payment-result').style.display = 'none';
+            document.getElementById('payment-form').reset();
+        }
+
+        function handlePaymentSubmit(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const payButton = document.getElementById('pay-button');
+            const resultDiv = document.getElementById('payment-result');
+
+            // Disable the pay button and show loading
+            payButton.disabled = true;
+            payButton.textContent = 'Processing...';
+            resultDiv.style.display = 'none';
+
+            // Convert FormData to JSON
+            const paymentData = {};
+            formData.forEach((value, key) => {
+                paymentData[key] = value;
+            });
+
+            // Convert amount to integer
+            paymentData.amount_minor_units = parseInt(paymentData.amount_minor_units);
+
+            fetch('api/pay-with-token.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => {
+                        throw new Error(error.error || 'Payment failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Payment successful
+                    resultDiv.className = 'payment-result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Payment Successful!</h3>
+                        <p><strong>Payment ID:</strong> ${data.payment_id}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        ${data.sale_data ? `
+                            <p><strong>Amount:</strong> ${(data.sale_data.amount_minor_units / 100).toFixed(2)} ${data.sale_data.currency}</p>
+                            <p><strong>Payment Reference:</strong> ${data.sale_data.payment_reference}</p>
+                            ${data.sale_data.order_id ? `<p><strong>Order ID:</strong> ${data.sale_data.order_id}</p>` : ''}
+                        ` : ''}
+                        ${data.payment_data ? `
+                            <p><strong>PSP Reference:</strong> ${data.payment_data.psp_reference}</p>
+                            <p><strong>Payment Method:</strong> ${data.payment_data.payment_method}</p>
+                            <p><strong>Auth Status:</strong> ${data.payment_data.auth_status}</p>
+                            ${data.payment_data.card ? `<p><strong>Card:</strong> **** ${data.payment_data.card.card_last_4_digits}</p>` : ''}
+                        ` : ''}
+                        <p><strong>Date:</strong> ${data.date_created || 'N/A'}</p>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                resultDiv.className = 'payment-result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Payment Failed</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                `;
+            })
+            .finally(() => {
+                // Re-enable the pay button
+                payButton.disabled = false;
+                payButton.textContent = 'Process Payment';
+                resultDiv.style.display = 'block';
+            });
         }
 
         function deleteToken(tokenId) {
@@ -1196,27 +1513,6 @@ class Program
         }
 
 
-        function showTab(language, section) {
-            // Hide all tab contents for this section
-            const tabContents = document.querySelectorAll(`#${section}-section .tab-content`);
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Remove active class from all buttons in this section
-            const tabButtons = document.querySelectorAll(`#${section}-section .tab-button`);
-            tabButtons.forEach(button => button.classList.remove('active'));
-
-            // Show selected tab content
-            const selectedContent = document.getElementById(`${section}-${language}-content`);
-            if (selectedContent) {
-                selectedContent.classList.add('active');
-            }
-
-            // Add active class to clicked button
-            const selectedButton = document.querySelector(`#${section}-section [onclick="showTab('${language}', '${section}')"]`);
-            if (selectedButton) {
-                selectedButton.classList.add('active');
-            }
-        }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {

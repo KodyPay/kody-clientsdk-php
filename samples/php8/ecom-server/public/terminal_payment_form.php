@@ -235,7 +235,7 @@ $terminalId = isset($_GET['tid']) ? htmlspecialchars($_GET['tid']) : '';
             }
         }
     </style>
-    <link rel="stylesheet" href="css/sdk-common.css">
+    <link rel="stylesheet" href="css/sdk-common.php">
     <script>
         // Wait for DOM to load before adding event listeners
         document.addEventListener('DOMContentLoaded', function() {

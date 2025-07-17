@@ -57,10 +57,6 @@ try {
 
     function deleteCardToken(array $requestData, array $config): array
     {
-        debugLog("Deleting card token", [
-            'token_id' => $requestData['token_id'] ?? null,
-            'token_reference' => $requestData['token_reference'] ?? null
-        ]);
 
         try {
             // Create the gRPC client with basic SSL
@@ -79,12 +75,18 @@ try {
             // Set store_id from config, not from request data
             $request->setStoreId($config['store_id']);
 
-            // Set token identifier (either token_id or token_reference)
-            if (!empty($requestData['token_id'])) {
-                $request->setTokenId($requestData['token_id']);
-            } elseif (!empty($requestData['token_reference'])) {
-                $request->setTokenReference($requestData['token_reference']);
+            // Set token_id - this is the only identifier we need
+            if (empty($requestData['token_id'])) {
+                throw new Exception("token_id is required");
             }
+
+            $tokenId = trim($requestData['token_id']);
+            if (empty($tokenId)) {
+                throw new Exception("token_id cannot be empty");
+            }
+
+            $request->setTokenId($tokenId);
+
 
             // Try multiple connection attempts
             $maxRetries = 3;
@@ -94,24 +96,18 @@ try {
                 try {
                     list($response, $grpcStatus) = $client->DeleteCardToken($request, $metadata)->wait();
 
-                    debugLog("gRPC call completed", [
-                        'attempt' => $attempt,
-                        'status_code' => $grpcStatus->code
-                    ]);
-
                     // If successful or non-retryable error, break
-                    if ($grpcStatus->code === 0 || !in_array($grpcStatus->code, [14, 4, 8])) {
+                    // Retry on: 13 (INTERNAL), 14 (UNAVAILABLE), 4 (DEADLINE_EXCEEDED), 8 (RESOURCE_EXHAUSTED)
+                    if ($grpcStatus->code === 0 || !in_array($grpcStatus->code, [13, 14, 4, 8])) {
                         break;
                     }
 
                     // If this was the last attempt, don't sleep
                     if ($attempt < $maxRetries) {
-                        debugLog("Retrying due to status code: " . $grpcStatus->code);
                         sleep($retryDelay);
                     }
 
                 } catch (Exception $e) {
-                    debugLog("Exception on attempt $attempt", ['message' => $e->getMessage()]);
                     if ($attempt === $maxRetries) {
                         throw $e;
                     }
@@ -122,12 +118,6 @@ try {
             return processResponse($response, $grpcStatus);
 
         } catch (Exception $e) {
-            debugLog("Exception in deleteCardToken", [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-
             return [
                 'success' => false,
                 'error' => 'Failed to delete card token: ' . $e->getMessage()
@@ -139,28 +129,23 @@ try {
     {
         if ($grpcStatus->code === 0) { // SUCCESS
             if ($response && $response->hasResponse()) {
-                debugLog("Card token deleted successfully");
-
+                // Response is empty {} but that means success
                 return [
                     'success' => true,
                     'message' => 'Card token deleted successfully'
                 ];
             } elseif ($response && $response->hasError()) {
                 $errorData = $response->getError();
-                debugLog("API returned error", [
-                    'error_type' => $errorData->getType(),
-                    'error_message' => $errorData->getMessage()
-                ]);
-
                 return [
                     'success' => false,
                     'error_type' => $errorData->getType(),
                     'error_message' => $errorData->getMessage()
                 ];
             } else {
+                // If no response and no error, but status is OK, it's still success
                 return [
-                    'success' => false,
-                    'error' => 'Empty response from server'
+                    'success' => true,
+                    'message' => 'Card token deleted successfully'
                 ];
             }
         }
@@ -168,6 +153,9 @@ try {
         // Handle specific gRPC error codes
         $errorMessage = 'Connection failed: ' . $grpcStatus->details;
         switch ($grpcStatus->code) {
+            case 13: // INTERNAL
+                $errorMessage = 'Internal service error. The delete operation may have failed due to a temporary service issue. Please try again in a few moments.';
+                break;
             case 14: // UNAVAILABLE
                 $errorMessage = 'Service unavailable. Please check your network connection and try again.';
                 break;
@@ -180,12 +168,14 @@ try {
             case 16: // UNAUTHENTICATED
                 $errorMessage = 'Authentication failed. Please check your API key.';
                 break;
+            case 3: // INVALID_ARGUMENT
+                $errorMessage = 'Invalid request parameters. Please check the token ID or reference.';
+                break;
+            case 5: // NOT_FOUND
+                $errorMessage = 'Token not found. It may have already been deleted or does not exist.';
+                break;
         }
 
-        debugLog("gRPC call failed", [
-            'status_code' => $grpcStatus->code,
-            'error_message' => $errorMessage
-        ]);
 
         return [
             'success' => false,
@@ -200,7 +190,7 @@ try {
         echo json_encode([
             'success' => true,
             'message' => 'DeleteCardToken API endpoint is working',
-            'required_fields' => ['token_id OR token_reference'],
+            'required_fields' => ['token_id'],
             'optional_fields' => [],
             'grpc_available' => class_exists('Com\Kodypay\Grpc\Ecom\V1\KodyEcomPaymentsServiceClient')
         ]);
@@ -223,7 +213,6 @@ try {
     $input = json_decode($inputRaw, true);
 
     if (!$input) {
-        debugLog("JSON decode failed", ['error' => json_last_error_msg()]);
         ob_end_clean();
         http_response_code(400);
         echo json_encode([
@@ -233,14 +222,13 @@ try {
         exit;
     }
 
-    // Validate required fields - need either token_id or token_reference
-    if (empty($input['token_id']) && empty($input['token_reference'])) {
-        debugLog("Missing token identifier");
+    // Validate required fields - need token_id
+    if (empty($input['token_id'])) {
         ob_end_clean();
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'error' => 'Missing required field: token_id or token_reference'
+            'error' => 'Missing required field: token_id'
         ]);
         exit;
     }
@@ -251,12 +239,6 @@ try {
     echo json_encode($result);
 
 } catch (Exception $e) {
-    debugLog("Top-level Exception", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine()
-    ]);
-
     ob_end_clean();
     http_response_code(500);
     echo json_encode([
@@ -264,10 +246,6 @@ try {
         'error' => 'Internal server error: ' . $e->getMessage()
     ]);
 } catch (Error $e) {
-    debugLog("PHP Error", [
-        'message' => $e->getMessage()
-    ]);
-
     ob_end_clean();
     http_response_code(500);
     echo json_encode([

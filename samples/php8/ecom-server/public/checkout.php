@@ -219,6 +219,11 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
             <div class="checkbox-container">
+                <input type="checkbox" id="enable_iframe" name="enable_iframe">
+                <label for="enable_iframe">Enable iframe mode</label>
+            </div>
+
+            <div class="checkbox-container">
                 <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="toggleExpirationFields()">
                 <label for="enable_expiration">Enable expiration</label>
             </div>

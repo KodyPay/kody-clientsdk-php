@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KodyPay Payment Checkout Component Demo</title>
+    <style>
+      iframe {
+        border: 0;
+        display: block;
+        margin: 0 auto;
+      }
+      .payment-status-expired {
+        color: blue;
+      }
+      .payment-status-success {
+        color: green;
+      }
+      .payment-status-error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>React Demo</h1>
+    <div id="react-app"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const { useState, useEffect, useCallback } = React;
+
+      function ReactApp() {
+        const [paymentStatus, setPaymentStatus] = useState();
+        const [iframeVisible, setIframeVisible] = useState(true);
+
+        // expired - 5CQ5U1q, 6TtnbJn - paid/error
+        const id =
+          new URLSearchParams(window.location.search).get("id") || "6TtnbJn";
+
+        const iframeDomain = () => {
+          const { hostname, protocol } = window.location;
+          // 本地环境判断
+          const isLocal =
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "0.0.0.0" ||
+            protocol === "file:";
+
+          if (isLocal) {
+            return "http://localhost:4200";
+          }
+
+          return "https://p-staging.kody.com";
+        };
+
+        const handleMessage = useCallback((event) => {
+          if (event.data && event.data.type === "PAYMENT_COMPLETE") {
+            setIframeVisible(false);
+            setPaymentStatus(event.data.outcome);
+          }
+        }, []);
+
+        useEffect(() => {
+          window.addEventListener("message", handleMessage);
+
+          return () => {
+            window.removeEventListener("message", handleMessage);
+          };
+        }, []);
+
+        return (
+          <>
+            {iframeVisible && (
+              <iframe
+                width="800px"
+                height="640px"
+                src={`${iframeDomain()}/${id}?isEmbeddedInIframe=1`}
+              ></iframe>
+            )}
+            {paymentStatus && (
+              <h2 className={`payment-status-${paymentStatus}`}>
+                Payment {paymentStatus}
+              </h2>
+            )}
+          </>
+        );
+      }
+
+      const reactRoot = ReactDOM.createRoot(
+        document.getElementById("react-app")
+      );
+      reactRoot.render(<ReactApp />);
+    </script>
+  </body>
+</html>

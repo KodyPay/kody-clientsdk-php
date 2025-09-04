@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KodyPay Payment Checkout Component Demo</title>
+    <style>
+      iframe {
+        border: 0;
+        display: block;
+        margin: 0 auto;
+      }
+      .payment-status-hidden {
+        display: none;
+      }
+      .payment-status-expired {
+        display: block;
+        color: blue;
+      }
+      .payment-status-success {
+        display: block;
+        color: green;
+      }
+      .payment-status-error {
+        display: block;
+        color: red;
+      }
+    </style>
+    <script type="text/javascript">
+      const iframeDomain = () => {
+        const { hostname, protocol } = window.location;
+
+        const isLocal =
+          hostname === "localhost" ||
+          hostname === "127.0.0.1" ||
+          hostname === "0.0.0.0" ||
+          protocol === "file:";
+
+        if (isLocal) {
+          return "http://localhost:4200";
+        }
+
+        return "https://p-staging.kody.com";
+      };
+
+      // Script to handle payment completion
+      window.addEventListener("DOMContentLoaded", () => {
+        window.addEventListener("message", (event) => {
+          // Check if message is payment complete
+          if (event.data && event.data.type === "PAYMENT_COMPLETE") {
+            // Find and hide the iframe
+            const iframe = document.getElementById("kody-iframe");
+            iframe.style.display = "none";
+
+            const h2 = document.getElementById("payment-status");
+            h2.textContent = `Payment ${event.data.outcome}`;
+
+            // Add class based on outcome
+            h2.classList.remove("payment-status-hidden");
+            h2.classList.add(`payment-status-${event.data.outcome}`);
+          }
+        });
+      });
+
+      window.addEventListener("load", () => {
+        const iframe = document.getElementById("kody-iframe");
+        const searchParams = new URLSearchParams(window.location.search);
+        const id = searchParams.get("id");
+        const width = searchParams.get("width");
+        iframe.src = iframeDomain() + `/${id}?isEmbeddedInIframe=1`;
+        width && (iframe.width = width);
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Demo</h1>
+    <iframe id="kody-iframe" width="80%" height="640px"></iframe>
+    <h2 id="payment-status" class="payment-status-hidden"></h2>
+  </body>
+</html>

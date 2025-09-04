@@ -36,6 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($status->code === \Grpc\STATUS_OK) {
         if ($response->hasResponse()) {
             $paymentUrl = $response->getResponse()->getPaymentUrl();
+
+            if (isset($_POST['enable_iframe'])) {
+                $parts = explode('/', $paymentUrl);
+                $paymentId = end($parts);
+                $paymentUrl = 'https://ecom-php-demo.kody.com/html/payment-in-iframe/demo.html?id=' . $paymentId;
+            }
+
             header('Location: ' . $paymentUrl);
             exit;
         } else {

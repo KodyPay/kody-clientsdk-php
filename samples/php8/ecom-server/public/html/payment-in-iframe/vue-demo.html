@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KodyPay Payment Checkout Component Demo</title>
+    <style>
+      iframe {
+        border: 0;
+        display: block;
+        margin: 0 auto;
+      }
+      .payment-status-hidden {
+        display: none;
+      }
+      .payment-status-expired {
+        color: blue;
+      }
+      .payment-status-success {
+        color: green;
+      }
+      .payment-status-error {
+        color: red;
+      }
+    </style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  </head>
+  <body>
+    <h1>Vue Demo</h1>
+    <div id="vue-app"></div>
+
+    <script>
+      const { ref, onMounted, onBeforeUnmount } = Vue;
+
+      const iframeDomain = () => {
+        const { hostname, protocol } = window.location;
+
+        const isLocal =
+          hostname === "localhost" ||
+          hostname === "127.0.0.1" ||
+          hostname === "0.0.0.0" ||
+          protocol === "file:";
+
+        if (isLocal) {
+          return "http://localhost:4200";
+        }
+
+        return "https://p-staging.kody.com";
+      };
+
+      const VueApp = {
+        template: `
+          <div>
+            <iframe
+              v-if="iframeVisible"
+              width={{width || "800px"}}
+              height="640px"
+              :src="iframeSrc"
+            ></iframe>
+            <h2 v-if="paymentStatus" :class="'payment-status-' + paymentStatus">
+              Payment {{ paymentStatus }}
+            </h2>
+          </div>
+        `,
+        setup() {
+          const paymentStatus = ref();
+          const iframeVisible = ref(true);
+
+          const searchParams = new URLSearchParams(window.location.search);
+          const id = searchParams.get("id");
+          const width = searchParams.get("width");
+
+          const iframeSrc = `${iframeDomain()}/${id}?isEmbeddedInIframe=1`;
+
+          const handleMessage = (event) => {
+            if (event.data && event.data.type === "PAYMENT_COMPLETE") {
+              iframeVisible.value = false;
+              paymentStatus.value = event.data.outcome;
+            }
+          };
+
+          onMounted(() => {
+            window.addEventListener("message", handleMessage);
+          });
+
+          onBeforeUnmount(() => {
+            window.removeEventListener("message", handleMessage);
+          });
+
+          return {
+            paymentStatus,
+            iframeVisible,
+            iframeSrc,
+          };
+        },
+      };
+
+      Vue.createApp(VueApp).mount("#vue-app");
+    </script>
+  </body>
+</html>

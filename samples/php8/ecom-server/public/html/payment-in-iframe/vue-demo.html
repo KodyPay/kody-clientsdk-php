@@ -34,7 +34,7 @@
 
       const iframeDomain = () => {
         const { hostname, protocol } = window.location;
-        // 本地环境判断
+
         const isLocal =
           hostname === "localhost" ||
           hostname === "127.0.0.1" ||
@@ -53,7 +53,7 @@
           <div>
             <iframe
               v-if="iframeVisible"
-              width="800px"
+              width={{width || "800px"}}
               height="640px"
               :src="iframeSrc"
             ></iframe>
@@ -66,9 +66,9 @@
           const paymentStatus = ref();
           const iframeVisible = ref(true);
 
-          // expired - 5CQ5U1q, 6TtnbJn - paid/error
-          const id =
-            new URLSearchParams(window.location.search).get("id") || "6TtnbJn";
+          const searchParams = new URLSearchParams(window.location.search);
+          const id = searchParams.get("id");
+          const width = searchParams.get("width");
 
           const iframeSrc = `${iframeDomain()}/${id}?isEmbeddedInIframe=1`;
 

@@ -191,6 +191,13 @@ $defaultStoreId = $_ENV['KODY_STORE_ID'];
             <p>Experience the online payment process</p>
         </a>
 
+        <!-- Checkout Component In Iframe -->
+        <h2 class="section-title">Checkout Component In Iframe</h2>
+        <a href="checkout-iframe.php" class="option">
+            <h2>Checkout Component In Iframe Demo</h2>
+            <p>Experience the checkout component in iframe</p>
+        </a>
+
         <!-- Terminal Payments -->
         <h2 class="section-title">Terminal Payments</h2>
         <a href="terminals.php" class="option">

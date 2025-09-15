@@ -185,6 +185,10 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             margin-left: 20px;
         }
 
+        .display-hide {
+            display: none;
+        }
+
     </style>
     <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/sdk-common.php"></script>
@@ -218,10 +222,10 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             <label for="order_id">Order ID:</label>
             <input type="text" id="order_id" name="order_id" value="<?php echo $randomOrderId; ?>" required>
 
-            <!-- <div class="checkbox-container">
-                <input type="checkbox" id="enable_iframe" name="enable_iframe">
+            <div class="checkbox-container display-hide">
+                <input type="checkbox" id="enable_iframe" name="enable_iframe" checked>
                 <label for="enable_iframe">Enable iframe mode</label>
-            </div> -->
+            </div>
 
             <div class="checkbox-container">
                 <input type="checkbox" id="enable_expiration" name="enable_expiration" onchange="toggleExpirationFields()">

@@ -7,6 +7,7 @@ use Com\Kodypay\Grpc\Ecom\V1\PaymentInitiationRequest;
 use Grpc\ChannelCredentials;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
     $paymentReference = uniqid('pay_', true);
 
     $client = new KodyEcomPaymentsServiceClient($config['hostname'], ['credentials' => ChannelCredentials::createSsl()]);
@@ -43,16 +44,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paymentUrl = 'https://ecom-php-demo.kody.com/html/payment-in-iframe/demo.html?id=' . $paymentId;
             }
 
-            header('Location: ' . $paymentUrl);
+            if (isset($_POST['enable_iframe'])) {
+                echo json_encode(['success' => true, 'paymentUrl' => $paymentUrl]);
+            } else {
+                header('Location: ' . $paymentUrl);
+            }
             exit;
         } else {
             $error = $response->getError()->getMessage();
-            header('Location: checkout.php?error=' . urlencode($error));
+            if (isset($_POST['enable_iframe'])) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => $error]);
+            } else {
+                header('Location: checkout.php?error=' . urlencode($error));
+            }
             exit;
         }
     } else {
         $error = 'gRPC error: ' . $status->details;
-        header('Location: checkout.php?error=' . urlencode($error));
+        if (isset($_POST['enable_iframe'])) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $error]);
+        } else {
+            header('Location: checkout.php?error=' . urlencode($error));
+        }
         exit;
     }
 } else {

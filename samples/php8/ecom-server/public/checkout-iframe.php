@@ -189,6 +189,15 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             display: none;
         }
 
+        #payment-frame {
+            width: 80%;
+            height: 640px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 24px auto;
+            display: none;
+        }
+
     </style>
     <link rel="stylesheet" href="css/sdk-common.php">
     <script src="js/sdk-common.php"></script>
@@ -205,7 +214,7 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
             <div class="error-message">Error: <?php echo $errorMessage; ?></div>
         <?php endif; ?>
 
-        <form action="checkout_payment.php" method="POST">
+        <form id="checkout-form" action="checkout_payment.php" method="POST">
             <label for="amount">Amount (minor units):</label>
             <input type="number" id="amount" name="amount" value="<?php echo $randomAmount; ?>" required min="1" step="1">
 
@@ -248,6 +257,8 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
 
             <button type="submit">Pay</button>
         </form>
+
+        <iframe id="payment-frame"></iframe>
 
         <div class="links">
             <a href="/index.php">Main menu</a>
@@ -558,9 +569,36 @@ class Program
             }
         }
 
+        async function handleSubmit() {
+            document.getElementById('checkout-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const paymentFrame = document.getElementById('payment-frame');
+
+                paymentFrame.style.display = 'none'
+
+                fetch(this.action, {
+                    method: this.method,
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.paymentUrl) {
+                        paymentFrame.src = data.paymentUrl;
+                        paymentFrame.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+            });
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleExpirationFields();
+            handleSubmit()
         });
     </script>
 </body>

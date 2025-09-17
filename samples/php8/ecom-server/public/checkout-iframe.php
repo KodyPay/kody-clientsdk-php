@@ -191,11 +191,28 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
 
         #payment-frame {
             width: 80%;
+            max-width: 768px;
             height: 640px;
-            border: 1px solid #ccc;
+            border: 0;
             border-radius: 4px;
             margin: 24px auto;
             display: none;
+        }
+
+        #payment-status {
+            display: none;
+            margin: 24px auto;
+            text-align: center;
+        }
+
+        .payment-status-expired {
+            color: blue;
+        }
+        .payment-status-success {
+            color: green;
+        }
+        .payment-status-error {
+            color: red;
         }
 
     </style>
@@ -259,6 +276,8 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
         </form>
 
         <iframe id="payment-frame"></iframe>
+
+        <h3 id="payment-status" style="display: none;"></h3>
 
         <div class="links">
             <a href="/index.php">Main menu</a>
@@ -575,8 +594,10 @@ class Program
 
                 const formData = new FormData(this);
                 const paymentFrame = document.getElementById('payment-frame');
+                const paymentStatus = document.getElementById("payment-status");
 
                 paymentFrame.style.display = 'none'
+                paymentStatus.style.display = 'none'
 
                 fetch(this.action, {
                     method: this.method,
@@ -585,7 +606,7 @@ class Program
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.paymentUrl) {
-                        paymentFrame.src = data.paymentUrl;
+                        paymentFrame.src = data.paymentUrl + (data.paymentUrl.includes('?') ? '&' : '?') + 'isEmbeddedInIframe=1';
                         paymentFrame.style.display = 'block';
                     }
                 })
@@ -595,10 +616,27 @@ class Program
             });
         }
 
+        async function handleMessage() {
+            window.addEventListener("message", (event) => {
+            // Check if message is payment complete
+            if (event.data && event.data.type === "PAYMENT_COMPLETE") {
+                // Find and hide the iframe
+                const paymentFrame = document.getElementById('payment-frame');
+                paymentFrame.style.display = "none";
+
+                const paymentStatus = document.getElementById("payment-status");
+                paymentStatus.textContent = `Payment ${event.data.outcome}`;
+                paymentStatus.classList.add(`payment-status-${event.data.outcome}`);
+                paymentStatus.style.display = 'block';
+            }
+            });
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleExpirationFields();
-            handleSubmit()
+            handleSubmit();
+            handleMessage();
         });
     </script>
 </body>

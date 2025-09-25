@@ -299,14 +299,13 @@ $errorMessage = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : null;
                 </li>
             </ul>
 
-            <h3>API Response</h3>
-            <p>Upon successful submission, the API will return:</p>
+            <h3>Response</h3>
+            <p>Upon successful submission, the componet will send message via <strong>postMessage</strong>, the format will be:</p>
             <ul>
-                <li><strong>Payment ID:</strong> A unique identifier created by Kody for this payment</li>
-                <li><strong>Payment URL:</strong> The URL where the customer will be redirected to complete the payment</li>
+                <li><strong>type:</strong> PAYMENT_COMPLETE</li>
+                <li><strong>outcome:</strong> One of: success, expired, error</li>
             </ul>
-
-            <p>After payment completion, the user will be redirected to the return URL specified in the backend configuration.</p>
+            <p>For more detailed information, please refer to the <a href="https://api-docs.kody.com/docs/payment-checkout-component" target="_blank">Online Payment Checkout Component</a>.</p>
 
             <h3>Test Cards</h3>
             <p>For testing purposes, you can use test cards available in the <a href="https://api-docs.kody.com/docs/getting-started/test-cards" target="_blank">Test Cards Documentation</a>.</p>

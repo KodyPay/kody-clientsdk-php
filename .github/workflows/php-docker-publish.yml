@@ -27,13 +27,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/kodypay/kody-clientsdk-php
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
       - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: ./samples/php8/ecom-server
           file: ./samples/php8/ecom-server/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/kodypay/kody-clientsdk-php:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Logout from GitHub Container Registry
         run: docker logout ghcr.io

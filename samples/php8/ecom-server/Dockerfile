@@ -1,6 +1,6 @@
-FROM composer:latest as composer
+FROM composer:latest AS composer
 
-FROM php:8.3-bullseye as grpc-base
+FROM php:8.3-bookworm AS grpc-base
 
 RUN apt-get -qq update && apt-get -qq install -y \
   libprotobuf-dev protobuf-compiler
@@ -8,7 +8,7 @@ RUN apt-get -qq update && apt-get -qq install -y \
 RUN pecl install grpc
 
 ######################
-FROM php:8.3-fpm-bullseye
+FROM php:8.3-fpm-bookworm
 
 RUN apt-get -qq update && apt-get -qq install -y \
   git zip unzip

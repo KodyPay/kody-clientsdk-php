@@ -2,8 +2,10 @@ FROM composer:latest AS composer
 
 FROM php:8.3-bookworm AS grpc-base
 
-# The pecl grpc package vendors its own protobuf/boringssl sources, so no system
-# protobuf is needed. pecl builds single-threaded by default, hence MAKEFLAGS.
+RUN apt-get -qq update && apt-get -qq install -y \
+  libprotobuf-dev protobuf-compiler
+
+# pecl builds single-threaded by default, hence MAKEFLAGS.
 RUN MAKEFLAGS="-j$(nproc)" pecl install grpc
 
 ######################

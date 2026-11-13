@@ -14,7 +14,6 @@ $metadata = ['X-API-Key' => [$config['api_key']]];
 
 error_log("API hostname: " . $config['hostname']);
 error_log("API storeId: " . $config['store_id']);
-error_log("API key: " . $config['api_key']);
 
 $request = new GetLogsRequest();
 $request->setStoreId($config['store_id']);

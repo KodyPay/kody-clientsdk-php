@@ -7,7 +7,7 @@ services:
     environment:
       KODY_HOSTNAME: "${KODY_HOSTNAME:-grpc-staging-eu.kodypay.com}"
       KODY_STORE_ID: "${KODY_STORE_ID:-c4cebf51-b006-4bb9-acd5-bb4bcdbd6e09}"
-      KODY_API_KEY: "${KODY_API_KEY:-0aY8Gqnx95WpmGnl6w8bxYO99As1vycBsb6soE_CQwd2}"
+      KODY_API_KEY: "${KODY_API_KEY:?Set KODY_API_KEY to your own API key (see .env.example)}"
       KODY_STORE_CURRENCY: "${KODY_STORE_CURRENCY:-GBP}"
       KODY_STORE_CURRENCIES: "${KODY_STORE_CURRENCIES:-GBP,HKD,USD}"
       PAYMENT_EXPIRING_SECONDS: "${PAYMENT_EXPIRING_SECONDS:-900}"

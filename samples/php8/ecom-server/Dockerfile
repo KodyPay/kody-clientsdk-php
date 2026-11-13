@@ -5,7 +5,8 @@ FROM php:8.3-bookworm AS grpc-base
 RUN apt-get -qq update && apt-get -qq install -y \
   libprotobuf-dev protobuf-compiler
 
-RUN pecl install grpc
+# pecl builds single-threaded by default, hence MAKEFLAGS.
+RUN MAKEFLAGS="-j$(nproc)" pecl install grpc
 
 ######################
 FROM php:8.3-fpm-bookworm
